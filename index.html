@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaToolkit Pro | Universal Master Suite</title>
+    <title>MediaToolkit Pro | All-In-One Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -26,9 +26,9 @@
 <body class="flex flex-col md:flex-row">
 
     <aside class="sidebar w-full md:w-64 flex flex-col shadow-xl">
-        <div class="p-8 border-b border-slate-800 text-center md:text-left">
+        <div class="p-8 border-b border-slate-800">
             <h1 class="text-xl font-bold text-white tracking-tight">Toolkit <span class="text-indigo-500">Pro</span></h1>
-            <p class="text-slate-500 text-[10px] uppercase tracking-widest mt-1 font-bold">Dynamic Scaling Active</p>
+            <p class="text-slate-500 text-[10px] uppercase tracking-widest mt-1 font-bold">Universal Master Suite</p>
         </div>
         <nav class="flex-1 py-4">
             <div onclick="switchTool('comic', this)" class="nav-item active px-8 py-4 font-medium text-sm">Comic Merger</div>
@@ -40,58 +40,69 @@
     </aside>
 
     <main class="flex-1 bg-slate-50 p-6 md:p-12 overflow-y-auto">
-        <div id="status" class="hidden fixed top-0 left-0 right-0 bg-indigo-600 text-white text-center py-2 text-xs font-bold z-50 tracking-wider">PROCESSING ASSETS...</div>
+        <div id="status" class="hidden fixed top-0 left-0 right-0 bg-indigo-600 text-white text-center py-2 text-xs font-bold z-50 tracking-wider">PROCESSING...</div>
 
         <div class="max-w-4xl mx-auto">
             
             <section id="comic" class="tool-panel active">
                 <div class="mb-10">
                     <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Comic Merger Pro</h2>
-                    <p class="text-slate-500 mt-2">Professional merging with dynamic 15.6% overlap and auto-width scaling.</p>
+                    <p class="text-slate-500 mt-2">Dynamic 15.6% overlap based on image height for perfect transitions.</p>
                 </div>
                 <div class="card space-y-6">
-                    <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-500 italic">
-                        Ratio Check: Automatically detects screenshot height and applies optimal blending for seamless transitions.
-
-</div>
                     <input type="file" id="comicFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
-                    <input type="text" id="comicZipName" placeholder="Project Name (e.g., Episode_01)" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                    <input type="text" id="comicZipName" placeholder="Project Name" class="w-full p-3 border rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
                     <button onclick="runComicMerger()" class="btn-action">Execute Professional Merge</button>
                 </div>
             </section>
 
             <section id="combiner" class="tool-panel">
                 <div class="mb-10">
-                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Universal Combiner</h2>
-                    <p class="text-slate-500 mt-2">Vertical stacking that respects different device resolutions.</p>
+                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Smart Combiner</h2>
+                    <p class="text-slate-500 mt-2">Vertical stitching without overlap, auto-scaled to best width.</p>
                 </div>
                 <div class="card space-y-6">
                     <input type="file" id="combFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
-                    <input type="number" id="combCount" value="5" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50" placeholder="Images per output">
-                    <button onclick="runSmartCombiner()" class="btn-action">Combine Collection</button>
+                    <input type="number" id="combCount" value="5" class="w-full p-3 border rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button onclick="runSmartCombiner()" class="btn-action">Combine Assets</button>
                 </div>
             </section>
 
             <section id="extractor" class="tool-panel">
-                <div class="mb-10"><h2 class="text-3xl font-bold text-slate-900">Frame Extractor</h2></div>
-                <div class="card"><input type="file" id="vidIn" accept="video/*" onchange="processVideo(this)" class="w-full text-sm text-slate-500"></div>
+                <div class="mb-10">
+                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Frame Extractor</h2>
+                    <p class="text-slate-500 mt-2">Extract frames every 8 seconds from video files.</p>
+                </div>
+                <div class="card space-y-6">
+                    <input type="file" id="vidIn" accept="video/*" class="w-full text-sm text-slate-500">
+                    <button onclick="processVideo()" class="btn-action">Extract Frames</button>
+                </div>
             </section>
 
             <section id="splitter" class="tool-panel">
-                <div class="mb-10"><h2 class="text-3xl font-bold text-slate-900">Image Splitter</h2></div>
-                <div class="card space-y-4">
+                <div class="mb-10">
+                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Image Splitter</h2>
+                    <p class="text-slate-500 mt-2">Split long vertical images into equal parts for publishing.</p>
+                </div>
+                <div class="card space-y-6">
                     <input type="file" id="splitFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
-                    <input type="number" id="splitCount" value="60" class="w-full p-3 border rounded-lg bg-slate-50">
-                    <button onclick="runSplitter()" class="btn-action">Split Archive</button>
+                    <input type="number" id="splitCount" value="50" class="w-full p-3 border rounded-lg bg-slate-50" placeholder="Total pieces">
+                    <button onclick="runSplitter()" class="btn-action">Split & Download</button>
                 </div>
             </section>
 
             <section id="watermark" class="tool-panel">
-                <div class="mb-10"><h2 class="text-3xl font-bold text-slate-900">Watermark Studio</h2></div>
-                <div class="card space-y-4">
+                <div class="mb-10">
+                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Watermark Studio</h2>
+                    <p class="text-slate-500 mt-2">Batch branding with opacity control.</p>
+                </div>
+                <div class="card space-y-6">
                     <input type="file" id="wmFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
-                    <input type="range" id="wmOpacity" min="0.1" max="1" step="0.1" value="0.5" class="w-full accent-indigo-600">
-                    <button onclick="runWatermark()" class="btn-action">Apply Branded Layer</button>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Opacity</label>
+                        <input type="range" id="wmOpacity" min="0.1" max="1" step="0.1" value="0.5" class="w-full accent-indigo-600">
+                    </div>
+                    <button onclick="runWatermark()" class="btn-action">Apply Watermark</button>
                 </div>
             </section>
 
@@ -123,120 +134,96 @@
             img.src = URL.createObjectURL(file);
         });
 
-const loadAsset = (path) => new Promise(res => {
+        const loadAsset = (path) => new Promise(res => {
             const img = new Image();
             img.onload = () => res(img);
-            img.onerror = () => { alert("Error: 'watermark.png' not found in root."); res(null); };
+            img.onerror = () => { alert("watermark.png missing"); res(null); };
             img.src = path;
         });
 
-        // --- COMIC MERGER (FIXED FOR DYNAMIC RESOLUTIONS) ---
+        // 1. COMIC MERGER (DYNAMIC 15.6% OVERLAP)
         async function runComicMerger() {
             const files = [...document.getElementById('comicFiles').files];
-            const zipName = document.getElementById('comicZipName').value || "export";
+            const zipName = document.getElementById('comicZipName').value || "comic";
             const wm = await loadAsset("watermark.png");
             if (!files.length || !wm) return;
 
             const zip = new JSZip();
-            let exportIdx = 1;
-
-            notify("ANALYZING DIMENSIONS...");
+            notify("PROCESSING COMIC...");
 
             for (let i = 0; i < files.length; i += 10) {
                 const batch = files.slice(i, i + 10);
                 const imgs = await Promise.all(batch.map(loadImage));
-                
-                // Sabse badi width lo taaki quality maintain rahe
                 const targetW = Math.max(...imgs.map(img => img.width));
                 
                 let hTotal = 0;
-                const scaledHeights = [];
+                const heights = [];
                 const overlaps = [];
 
                 imgs.forEach((img, j) => {
-                    const ratio = targetW / img.width;
-                    const sH = img.height * ratio;
-                    scaledHeights.push(sH);
-                    
-                    // Dynamic 15.6% Overlap logic (250px on 1600px height)
-                    const currentOverlap = Math.floor(sH * 0.156);
-                    overlaps.push(currentOverlap);
-
-                    if (i + j === 0) hTotal += sH;
-                    else hTotal += (sH - currentOverlap);
+                    const sH = img.height * (targetW / img.width);
+                    heights.push(sH);
+                    const ov = Math.floor(sH * 0.156);
+                    overlaps.push(ov);
+                    hTotal += (i + j === 0) ? sH : (sH - ov);
                 });
 
-                canvas.width = targetW;
-                canvas.height = hTotal;
-                
+                canvas.width = targetW; canvas.height = hTotal;
                 let y = 0;
                 imgs.forEach((img, j) => {
-                    const sH = scaledHeights[j];
+                    const sH = heights[j];
                     const ov = overlaps[j];
-
-                    if (i + j === 0) {
-                        ctx.drawImage(img, 0, 0, targetW, sH);
-                        y += sH;
-                    } else {
-                        // Blend transition
-                        const sourceOv = ov * (img.width / targetW);
-                        ctx.drawImage(img, 0, sourceOv, img.width, img.height - sourceOv, 0, y - ov, targetW, sH);
+                    if (i + j === 0) { ctx.drawImage(img, 0, 0, targetW, sH); y += sH; }
+                    else {
+                        const srcOv = ov * (img.width / targetW);
+                        ctx.drawImage(img, 0, srcOv, img.width, img.height - srcOv, 0, y - ov, targetW, sH - ov);
                         y += (sH - ov);
                     }
                 });
 
-                // Watermark Branding
                 ctx.globalAlpha = 0.4;
-                const scW = targetW * 0.25;
-                const scH = wm.height * (scW / wm.width);
-                ctx.drawImage(wm, targetW - scW - 20, hTotal - scH - 20, scW, scH);
+                const sw = targetW * 0.25; const sh = wm.height * (sw / wm.width);
+                ctx.drawImage(wm, targetW - sw - 20, hTotal - sh - 20, sw, sh);
                 ctx.globalAlpha = 1.0;
 
-                zip.file(${String(exportIdx++).padStart(3, '0')}.webp, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
-                notify(MERGING PART: ${exportIdx-1});
+                zip.file(`part_${Math.floor(i/10)+1}.webp`, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
+                notify(`MERGED BATCH ${Math.floor(i/10)+1}`);
             }
-
-            saveAs(await zip.generateAsync({type:'blob'}), ${zipName}.zip);
+            saveAs(await zip.generateAsync({type:'blob'}), `${zipName}.zip`);
             notify("", false);
         }
 
-        // --- SMART COMBINER (NO OVERLAP) ---
+        // 2. SMART COMBINER
         async function runSmartCombiner() {
             const files = [...document.getElementById('combFiles').files];
             const perPage = parseInt(document.getElementById('combCount').value);
-            if (!files.length) return alert("Select files.");
-
-            notify("STITCHING ASSETS...");
+            if (!files.length) return;
+            notify("COMBINING...");
             const zip = new JSZip();
-
             for (let i = 0; i < files.length; i += perPage) {
                 const batch = files.slice(i, i + perPage);
                 const imgs = await Promise.all(batch.map(loadImage));
                 const targetW = Math.max(...imgs.map(img => img.width));
-                
-                let h = 0;
-                imgs.forEach(img => h += (img.height * (targetW / img.width)));
-
-canvas.width = targetW; canvas.height = h;
+                let h = 0; imgs.forEach(img => h += (img.height * (targetW / img.width)));
+                canvas.width = targetW; canvas.height = h;
                 let y = 0;
                 imgs.forEach(img => {
                     const sH = img.height * (targetW / img.width);
-                    ctx.drawImage(img, 0, y, targetW, sH);
-                    y += sH;
+                    ctx.drawImage(img, 0, y, targetW, sH); y += sH;
                 });
-                zip.file(${String(Math.floor(i/perPage) + 1).padStart(3, '0')}.webp, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
+                zip.file(`file_${Math.floor(i/perPage)+1}.webp`, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
             }
             saveAs(await zip.generateAsync({type:'blob'}), "combined.zip");
             notify("", false);
         }
 
-        // Frame Extractor logic
-        async function processVideo(input) {
-            const file = input.files[0];
-            if (!file) return;
-            notify("EXTRACTING FRAMES...");
+        // 3. FRAME EXTRACTOR
+        async function processVideo() {
+            const input = document.getElementById('vidIn');
+            if (!input.files[0]) return;
+            notify("EXTRACTING...");
             const video = document.createElement('video');
-            video.src = URL.createObjectURL(file);
+            video.src = URL.createObjectURL(input.files[0]);
             video.onloadedmetadata = async () => {
                 canvas.width = video.videoWidth; canvas.height = video.videoHeight;
                 const zip = new JSZip();
@@ -244,51 +231,54 @@ canvas.width = targetW; canvas.height = h;
                     video.currentTime = t;
                     await new Promise(r => video.onseeked = r);
                     ctx.drawImage(video, 0, 0);
-                    zip.file(frame_${Math.floor(t)}.jpg, await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8)));
+                    zip.file(`frame_${Math.floor(t)}.jpg`, await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8)));
                 }
                 saveAs(await zip.generateAsync({type:'blob'}), "frames.zip");
                 notify("", false);
             };
         }
 
-        // Watermark studio logic
+        // 4. IMAGE SPLITTER
+        async function runSplitter() {
+            const files = [...document.getElementById('splitFiles').files];
+            const total = parseInt(document.getElementById('splitCount').value);
+            if (!files.length) return;
+            notify("SPLITTING...");
+            const imgs = await Promise.all(files.map(loadImage));
+            const w = Math.max(...imgs.map(i => i.width));
+            const hTotal = imgs.reduce((s, i) => s + i.height, 0);
+            canvas.width = w; canvas.height = hTotal;
+            let y = 0; imgs.forEach(i => { ctx.drawImage(i, 0, y); y += i.height; });
+            const sh = Math.floor(hTotal / total); const zip = new JSZip();
+            for (let i = 0; i < total; i++) {
+                const sy = i * sh; const ch = (i === total - 1) ? (hTotal - sy) : sh;
+                const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = ch;
+                tmp.getContext('2d').drawImage(canvas, 0, sy, w, ch, 0, 0, w, ch);
+                zip.file(`${i+1}.webp`, await new Promise(r => tmp.toBlob(r, 'image/webp', 0.9)));
+            }
+            saveAs(await zip.generateAsync({type:'blob'}), "split.zip");
+            notify("", false);
+        }
+
+        // 5. WATERMARK STUDIO
         async function runWatermark() {
             const files = [...document.getElementById('wmFiles').files];
             const op = document.getElementById('wmOpacity').value;
             const wm = await loadAsset("watermark.png");
             if (!files.length || !wm) return;
+            notify("BRANDING...");
             const zip = new JSZip();
             for (let i = 0; i < files.length; i++) {
                 const img = await loadImage(files[i]);
                 canvas.width = img.width; canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                ctx.globalAlpha = op;
+                ctx.drawImage(img, 0, 0); ctx.globalAlpha = op;
                 const sw = img.width * 0.3; const sh = wm.height * (sw / wm.width);
                 ctx.drawImage(wm, img.width - sw - 20, img.height - sh - 20, sw, sh);
                 ctx.globalAlpha = 1.0;
-                zip.file(${String(i + 1).padStart(3, '0')}.webp, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
+                zip.file(`${i+1}.webp`, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
             }
             saveAs(await zip.generateAsync({type:'blob'}), "watermarked.zip");
-        }
-
-        // Image splitter logic
-        async function runSplitter() {
-            const files = [...document.getElementById('splitFiles').files];
-            const total = parseInt(document.getElementById('splitCount').value);
-            if (!files.length) return;
-            const imgs = await Promise.all(files.map(loadImage));
-            const w = Math.max(...imgs.map(i => i.width));
-            const h = imgs.reduce((s, i) => s + i.height, 0);
-            canvas.width = w; canvas.height = h;
-            let y = 0; imgs.forEach(i => { ctx.drawImage(i, 0, y); y += i.height; });
-            const sh = Math.floor(h / total); const zip = new JSZip();
-            for (let i = 0; i < total; i++) {
-                const sy = i * sh; const curH = (i === total - 1) ? (h - sy) : sh;
-                const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = curH;
-                tmp.getContext('2d').drawImage(canvas, 0, sy, w, curH, 0, 0, w, curH);
-                zip.file(${String(i + 1).padStart(3, '0')}.webp, await new Promise(r => tmp.toBlob(r, 'image/webp', 0.9)));
-            }
-            saveAs(await zip.generateAsync({type:'blob'}), "split.zip");
+            notify("", false);
         }
     </script>
 </body>
