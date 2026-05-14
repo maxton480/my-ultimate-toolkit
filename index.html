@@ -3,129 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaToolkit Pro | All-In-One Suite</title>
+    <title>Media Processing Suite | Professional Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .sidebar { background-color: #0f172a; min-height: 100vh; }
-        .nav-item { transition: all 0.2s ease; color: #94a3b8; border-left: 4px solid transparent; cursor: pointer; }
-        .nav-item:hover { background-color: #1e293b; color: #f8fafc; }
-        .nav-item.active { background-color: #1e293b; color: #6366f1; border-left: 4px solid #6366f1; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            color: #1e293b;
+        }
+        .sidebar { background-color: #0f172a; }
+        .nav-item { 
+            transition: all 0.2s ease; 
+            color: #94a3b8;
+            border-left: 4px solid transparent;
+        }
+        .nav-item:hover { 
+            background-color: #1e293b; 
+            color: #f8fafc; 
+        }
+        .nav-item.active { 
+            background-color: #1e293b; 
+            color: #6366f1; 
+            border-left: 4px solid #6366f1;
+        }
         .tool-panel { display: none; }
-        .tool-panel.active { display: block; animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 2rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .btn-action { background: #4f46e5; color: white; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: background 0.2s; width: 100%; }
-        .btn-action:hover { background: #4338ca; }
-        input[type="file"]::file-selector-button { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 0.5rem; color: #475569; font-weight: 600; cursor: pointer; margin-right: 1rem; }
+        .tool-panel.active { display: block; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .input-field {
+            border: 1px solid #e2e8f0;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus {
+            border-color: #6366f1;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
     </style>
 </head>
-<body class="flex flex-col md:flex-row">
+<body class="min-h-screen flex flex-col md:flex-row">
 
-    <aside class="sidebar w-full md:w-64 flex flex-col shadow-xl">
+    <aside class="sidebar w-full md:w-72 flex flex-col text-white shadow-xl">
         <div class="p-8 border-b border-slate-800">
-            <h1 class="text-xl font-bold text-white tracking-tight">Toolkit <span class="text-indigo-500">Pro</span></h1>
-            <p class="text-slate-500 text-[10px] uppercase tracking-widest mt-1 font-bold">Universal Master Suite</p>
+            <h1 class="text-xl font-bold tracking-tight text-white">MediaToolkit <span class="text-indigo-500">Pro</span></h1>
+            <p class="text-slate-500 text-xs mt-1 uppercase tracking-widest font-semibold">Master Repository</p>
         </div>
-        <nav class="flex-1 py-4">
-            <div onclick="switchTool('comic', this)" class="nav-item active px-8 py-4 font-medium text-sm">Comic Merger</div>
-            <div onclick="switchTool('combiner', this)" class="nav-item px-8 py-4 font-medium text-sm">Smart Combiner</div>
-            <div onclick="switchTool('extractor', this)" class="nav-item px-8 py-4 font-medium text-sm">Frame Extractor</div>
-            <div onclick="switchTool('splitter', this)" class="nav-item px-8 py-4 font-medium text-sm">Image Splitter</div>
-            <div onclick="switchTool('watermark', this)" class="nav-item px-8 py-4 font-medium text-sm">Watermark Studio</div>
+
+        <nav class="flex-1 py-6">
+            <div onclick="switchPanel('extractor', this)" class="nav-item active px-8 py-4 flex items-center cursor-pointer font-medium">
+                Frame Extractor
+            </div>
+            <div onclick="switchPanel('splitter', this)" class="nav-item px-8 py-4 flex items-center cursor-pointer font-medium">
+                Image Splitter
+            </div>
+            <div onclick="switchPanel('combiner', this)" class="nav-item px-8 py-4 flex items-center cursor-pointer font-medium">
+                Image Combiner
+            </div>
+            <div onclick="switchPanel('watermark', this)" class="nav-item px-8 py-4 flex items-center cursor-pointer font-medium">
+                Watermark Studio
+            </div>
+            <div onclick="switchPanel('comic', this)" class="nav-item px-8 py-4 flex items-center cursor-pointer font-medium">
+                Comic Merger
+            </div>
         </nav>
+
+        <div class="p-6 border-t border-slate-800 bg-slate-900/50">
+            <div class="flex items-center gap-3">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-xs text-slate-400 font-medium">All Systems Operational</span>
+            </div>
+        </div>
     </aside>
 
-    <main class="flex-1 bg-slate-50 p-6 md:p-12 overflow-y-auto">
-        <div id="status" class="hidden fixed top-0 left-0 right-0 bg-indigo-600 text-white text-center py-2 text-xs font-bold z-50 tracking-wider">PROCESSING...</div>
+    <main class="flex-1 bg-slate-50 overflow-y-auto">
+        
+        <div id="notif" class="hidden sticky top-0 z-50 bg-indigo-600 text-white text-center py-3 font-semibold text-sm shadow-md transition-all"></div>
 
-        <div class="max-w-4xl mx-auto">
+        <div class="p-8 md:p-16 max-w-5xl mx-auto">
             
-            <section id="comic" class="tool-panel active">
-                <div class="mb-10">
-                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Comic Merger Pro</h2>
-                    <p class="text-slate-500 mt-2">Dynamic 15.6% overlap based on image height for perfect transitions.</p>
-                </div>
-                <div class="card space-y-6">
-                    <input type="file" id="comicFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
-                    <input type="text" id="comicZipName" placeholder="Project Name" class="w-full p-3 border rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
-                    <button onclick="runComicMerger()" class="btn-action">Execute Professional Merge</button>
-                </div>
-            </section>
-
-            <section id="combiner" class="tool-panel">
-                <div class="mb-10">
-                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Smart Combiner</h2>
-                    <p class="text-slate-500 mt-2">Vertical stitching without overlap, auto-scaled to best width.</p>
-                </div>
-                <div class="card space-y-6">
-                    <input type="file" id="combFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
-                    <input type="number" id="combCount" value="5" class="w-full p-3 border rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
-                    <button onclick="runSmartCombiner()" class="btn-action">Combine Assets</button>
-                </div>
-            </section>
-
-            <section id="extractor" class="tool-panel">
-                <div class="mb-10">
-                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Frame Extractor</h2>
-                    <p class="text-slate-500 mt-2">Extract frames every 8 seconds from video files.</p>
-                </div>
-                <div class="card space-y-6">
-                    <input type="file" id="vidIn" accept="video/*" class="w-full text-sm text-slate-500">
-                    <button onclick="processVideo()" class="btn-action">Extract Frames</button>
+            <section id="extractor" class="tool-panel active">
+                <header class="mb-10">
+                    <h2 class="text-3xl font-extrabold text-slate-900">Video Frame Extractor</h2>
+                    <p class="text-slate-500 mt-2">Extract precise frames at 8-second intervals into a ZIP archive.</p>
+                </header>
+                <div class="bg-white p-10 rounded-2xl shadow-sm border border-slate-200">
+                    <label class="block text-sm font-bold text-slate-700 mb-4">Select Video File</label>
+                    <input type="file" id="vidIn" accept="video/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all cursor-pointer border border-slate-100 rounded-xl p-2 bg-slate-50" onchange="processVideo(this)">
                 </div>
             </section>
 
             <section id="splitter" class="tool-panel">
-                <div class="mb-10">
-                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Image Splitter</h2>
-                    <p class="text-slate-500 mt-2">Split long vertical images into equal parts for publishing.</p>
+                <header class="mb-10">
+                    <h2 class="text-3xl font-extrabold text-slate-900">Webtoon Image Splitter</h2>
+                    <p class="text-slate-500 mt-2">Stitch multiple long images and split them into equal parts.</p>
+                </header>
+                <div class="bg-white p-10 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Upload Source Images</label>
+                        <input type="file" id="splitFiles" multiple accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:bg-slate-100 border-0 bg-slate-50 rounded-xl p-2">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Total Output Count</label>
+                            <input type="number" id="splitCount" value="60" class="input-field w-full p-3 rounded-xl bg-slate-50 font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Starting Index</label>
+                            <input type="number" id="splitStart" value="1" class="input-field w-full p-3 rounded-xl bg-slate-50 font-medium">
+                        </div>
+                    </div>
+                    <button onclick="runSplitter()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Process & Download</button>
                 </div>
-                <div class="card space-y-6">
-                    <input type="file" id="splitFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
-                    <input type="number" id="splitCount" value="50" class="w-full p-3 border rounded-lg bg-slate-50" placeholder="Total pieces">
-                    <button onclick="runSplitter()" class="btn-action">Split & Download</button>
+            </section>
+
+            <section id="combiner" class="tool-panel">
+                <header class="mb-10">
+                    <h2 class="text-3xl font-extrabold text-slate-900">Image Combiner</h2>
+                    <p class="text-slate-500 mt-2">Vertical stacking for high-resolution webtoon exports.</p>
+                </header>
+                <div class="bg-white p-10 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                    <input type="file" id="combFiles" multiple accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:bg-slate-100 border-0 bg-slate-50 rounded-xl p-2">
+                    <div class="grid grid-cols-2 gap-6">
+                        <input type="number" id="combCount" value="3" placeholder="Images per file" class="input-field w-full p-3 rounded-xl bg-slate-50">
+                        <input type="number" id="combStart" value="1" placeholder="Start index" class="input-field w-full p-3 rounded-xl bg-slate-50">
+                    </div>
+                    <button onclick="runCombiner()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-black transition-all">Generate Collection</button>
                 </div>
             </section>
 
             <section id="watermark" class="tool-panel">
-                <div class="mb-10">
-                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Watermark Studio</h2>
-                    <p class="text-slate-500 mt-2">Batch branding with opacity control.</p>
-                </div>
-                <div class="card space-y-6">
-                    <input type="file" id="wmFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-400 uppercase">Opacity</label>
-                        <input type="range" id="wmOpacity" min="0.1" max="1" step="0.1" value="0.5" class="w-full accent-indigo-600">
+                <header class="mb-10">
+                    <h2 class="text-3xl font-extrabold text-slate-900">Watermark Studio</h2>
+                    <p class="text-slate-500 mt-2">Batch process branding with opacity control.</p>
+                </header>
+                <div class="bg-white p-10 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                    <div class="p-4 bg-amber-50 border border-amber-100 rounded-xl text-amber-800 text-xs font-medium">
+                        Notice: Ensure 'watermark.png' is located in the root directory.
                     </div>
-                    <button onclick="runWatermark()" class="btn-action">Apply Watermark</button>
+                    <input type="file" id="wmFiles" multiple accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:bg-slate-100 border-0 bg-slate-50 rounded-xl p-2">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-bold text-slate-500 uppercase">
+                            <span>Opacity Level</span>
+                            <span id="opacityVal">50%</span>
+                        </div>
+                        <input type="range" id="wmOpacity" min="0.1" max="1" step="0.1" value="0.5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('opacityVal').innerText = Math.round(this.value*100)+'%'">
+                    </div>
+                    <button onclick="runWatermark()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all">Apply Branding</button>
+                </div>
+            </section>
+
+            <section id="comic" class="tool-panel">
+                <header class="mb-10">
+                    <h2 class="text-3xl font-extrabold text-slate-900">Comic Merger Ultimate</h2>
+                    <p class="text-slate-500 mt-2">Professional merging with 250px overlap and watermark support.</p>
+                </header>
+                <div class="bg-white p-10 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                    <input type="file" id="comicFiles" multiple accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:bg-slate-100 border-0 bg-slate-50 rounded-xl p-2">
+                    <input type="text" id="comicZipName" placeholder="Project Name (e.g. Episode_01)" class="input-field w-full p-3 rounded-xl bg-slate-50 font-medium">
+                    <button onclick="runComicMerger()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all">Execute Merge</button>
                 </div>
             </section>
 
         </div>
     </main>
 
-    <canvas id="masterCanvas" class="hidden"></canvas>
+    <canvas id="mainCanvas" class="hidden"></canvas>
 
     <script>
-        const status = document.getElementById('status');
-        const canvas = document.getElementById('masterCanvas');
+        const notif = document.getElementById('notif');
+        const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
 
-        function switchTool(id, el) {
+        function switchPanel(id, el) {
             document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             el.classList.add('active');
+            notif.classList.add('hidden');
         }
 
-        function notify(text, show = true) {
-            status.innerText = text;
-            status.classList.toggle('hidden', !show);
+        function notify(text, isLoading = true) {
+            notif.innerText = text;
+            notif.classList.remove('hidden');
+            if(!isLoading) setTimeout(() => notif.classList.add('hidden'), 3000);
         }
 
         const loadImage = (file) => new Promise(res => {
@@ -137,148 +202,155 @@
         const loadAsset = (path) => new Promise(res => {
             const img = new Image();
             img.onload = () => res(img);
-            img.onerror = () => { alert("watermark.png missing"); res(null); };
+            img.onerror = () => { alert("Error: Asset 'watermark.png' missing."); res(null); };
             img.src = path;
         });
 
-        // 1. COMIC MERGER (DYNAMIC 15.6% OVERLAP)
-        async function runComicMerger() {
-            const files = [...document.getElementById('comicFiles').files];
-            const zipName = document.getElementById('comicZipName').value || "comic";
-            const wm = await loadAsset("watermark.png");
-            if (!files.length || !wm) return;
-
-            const zip = new JSZip();
-            notify("PROCESSING COMIC...");
-
-            for (let i = 0; i < files.length; i += 10) {
-                const batch = files.slice(i, i + 10);
-                const imgs = await Promise.all(batch.map(loadImage));
-                const targetW = Math.max(...imgs.map(img => img.width));
-                
-                let hTotal = 0;
-                const heights = [];
-                const overlaps = [];
-
-                imgs.forEach((img, j) => {
-                    const sH = img.height * (targetW / img.width);
-                    heights.push(sH);
-                    const ov = Math.floor(sH * 0.156);
-                    overlaps.push(ov);
-                    hTotal += (i + j === 0) ? sH : (sH - ov);
-                });
-
-                canvas.width = targetW; canvas.height = hTotal;
-                let y = 0;
-                imgs.forEach((img, j) => {
-                    const sH = heights[j];
-                    const ov = overlaps[j];
-                    if (i + j === 0) { ctx.drawImage(img, 0, 0, targetW, sH); y += sH; }
-                    else {
-                        const srcOv = ov * (img.width / targetW);
-                        ctx.drawImage(img, 0, srcOv, img.width, img.height - srcOv, 0, y - ov, targetW, sH - ov);
-                        y += (sH - ov);
-                    }
-                });
-
-                ctx.globalAlpha = 0.4;
-                const sw = targetW * 0.25; const sh = wm.height * (sw / wm.width);
-                ctx.drawImage(wm, targetW - sw - 20, hTotal - sh - 20, sw, sh);
-                ctx.globalAlpha = 1.0;
-
-                zip.file(`part_${Math.floor(i/10)+1}.webp`, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
-                notify(`MERGED BATCH ${Math.floor(i/10)+1}`);
-            }
-            saveAs(await zip.generateAsync({type:'blob'}), `${zipName}.zip`);
-            notify("", false);
-        }
-
-        // 2. SMART COMBINER
-        async function runSmartCombiner() {
-            const files = [...document.getElementById('combFiles').files];
-            const perPage = parseInt(document.getElementById('combCount').value);
-            if (!files.length) return;
-            notify("COMBINING...");
-            const zip = new JSZip();
-            for (let i = 0; i < files.length; i += perPage) {
-                const batch = files.slice(i, i + perPage);
-                const imgs = await Promise.all(batch.map(loadImage));
-                const targetW = Math.max(...imgs.map(img => img.width));
-                let h = 0; imgs.forEach(img => h += (img.height * (targetW / img.width)));
-                canvas.width = targetW; canvas.height = h;
-                let y = 0;
-                imgs.forEach(img => {
-                    const sH = img.height * (targetW / img.width);
-                    ctx.drawImage(img, 0, y, targetW, sH); y += sH;
-                });
-                zip.file(`file_${Math.floor(i/perPage)+1}.webp`, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
-            }
-            saveAs(await zip.generateAsync({type:'blob'}), "combined.zip");
-            notify("", false);
-        }
-
-        // 3. FRAME EXTRACTOR
-        async function processVideo() {
-            const input = document.getElementById('vidIn');
-            if (!input.files[0]) return;
-            notify("EXTRACTING...");
+        // 1. Frame Extractor Logic
+        async function processVideo(input) {
+            const file = input.files[0];
+            if (!file) return;
+            notify("Initializing Video Engine...");
+            
             const video = document.createElement('video');
-            video.src = URL.createObjectURL(input.files[0]);
+            video.src = URL.createObjectURL(file);
             video.onloadedmetadata = async () => {
-                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
                 const zip = new JSZip();
-                for (let t = 0; t < video.duration; t += 8) {
-                    video.currentTime = t;
+                const times = [0];
+                for (let i = 8; i < video.duration - 1; i += 8) times.push(i);
+                times.push(video.duration - 0.1);
+
+                for (let i = 0; i < times.length; i++) {
+                    video.currentTime = times[i];
                     await new Promise(r => video.onseeked = r);
                     ctx.drawImage(video, 0, 0);
-                    zip.file(`frame_${Math.floor(t)}.jpg`, await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8)));
+                    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8));
+                    zip.file(`frame_${i}.jpg`, blob);
+                    notify(`Processing: ${Math.round(((i+1)/times.length)*100)}%`);
                 }
-                saveAs(await zip.generateAsync({type:'blob'}), "frames.zip");
-                notify("", false);
+                saveAs(await zip.generateAsync({type:'blob'}), "extracted_frames.zip");
+                notify("Task Complete", false);
+                URL.revokeObjectURL(video.src);
             };
         }
 
-        // 4. IMAGE SPLITTER
+        // 2. Splitter Logic
         async function runSplitter() {
             const files = [...document.getElementById('splitFiles').files];
+            if (!files.length) return alert("Please select images first.");
             const total = parseInt(document.getElementById('splitCount').value);
-            if (!files.length) return;
-            notify("SPLITTING...");
+            const start = parseInt(document.getElementById('splitStart').value);
+            
+            notify("Analyzing Dimensions...");
             const imgs = await Promise.all(files.map(loadImage));
             const w = Math.max(...imgs.map(i => i.width));
             const hTotal = imgs.reduce((s, i) => s + i.height, 0);
+            
             canvas.width = w; canvas.height = hTotal;
-            let y = 0; imgs.forEach(i => { ctx.drawImage(i, 0, y); y += i.height; });
-            const sh = Math.floor(hTotal / total); const zip = new JSZip();
+            let y = 0;
+            imgs.forEach(i => { ctx.drawImage(i, 0, y); y += i.height; });
+
+            const sliceH = Math.floor(hTotal / total);
+            const zip = new JSZip();
             for (let i = 0; i < total; i++) {
-                const sy = i * sh; const ch = (i === total - 1) ? (hTotal - sy) : sh;
-                const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = ch;
-                tmp.getContext('2d').drawImage(canvas, 0, sy, w, ch, 0, 0, w, ch);
-                zip.file(`${i+1}.webp`, await new Promise(r => tmp.toBlob(r, 'image/webp', 0.9)));
+                const sY = i * sliceH;
+                const currentH = (i === total - 1) ? (hTotal - sY) : sliceH;
+                const tmp = document.createElement('canvas');
+                tmp.width = w; tmp.height = currentH;
+                tmp.getContext('2d').drawImage(canvas, 0, sY, w, currentH, 0, 0, w, currentH);
+                zip.file(`${String(start + i).padStart(3, '0')}.webp`, await new Promise(r => tmp.toBlob(r, 'image/webp', 0.9)));
             }
-            saveAs(await zip.generateAsync({type:'blob'}), "split.zip");
-            notify("", false);
+            saveAs(await zip.generateAsync({type:'blob'}), "split_images_archive.zip");
+            notify("Download Ready", false);
         }
 
-        // 5. WATERMARK STUDIO
+        // 3. Combiner Logic
+        async function runCombiner() {
+            const files = [...document.getElementById('combFiles').files];
+            const perPage = parseInt(document.getElementById('combCount').value);
+            const start = parseInt(document.getElementById('combStart').value);
+            if (!files.length) return alert("Select files.");
+
+            const zip = new JSZip();
+            let currentIdx = start;
+            for (let i = 0; i < files.length; i += perPage) {
+                const batch = files.slice(i, i + perPage);
+                const imgs = await Promise.all(batch.map(loadImage));
+                const w = Math.max(...imgs.map(img => img.width));
+                const h = imgs.reduce((s, img) => s + img.height, 0);
+                
+                canvas.width = w; canvas.height = h;
+                let y = 0;
+                imgs.forEach(img => { ctx.drawImage(img, 0, y); y += img.height; });
+                zip.file(`${String(currentIdx++).padStart(3, '0')}.webp`, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
+                notify(`Merging Batch ${currentIdx-start}...`);
+            }
+            saveAs(await zip.generateAsync({type:'blob'}), "combined_results.zip");
+            notify("Process Finished", false);
+        }
+
+        // 4. Watermark Logic
         async function runWatermark() {
             const files = [...document.getElementById('wmFiles').files];
-            const op = document.getElementById('wmOpacity').value;
+            const opacity = document.getElementById('wmOpacity').value;
             const wm = await loadAsset("watermark.png");
             if (!files.length || !wm) return;
-            notify("BRANDING...");
+
             const zip = new JSZip();
             for (let i = 0; i < files.length; i++) {
                 const img = await loadImage(files[i]);
                 canvas.width = img.width; canvas.height = img.height;
-                ctx.drawImage(img, 0, 0); ctx.globalAlpha = op;
-                const sw = img.width * 0.3; const sh = wm.height * (sw / wm.width);
-                ctx.drawImage(wm, img.width - sw - 20, img.height - sh - 20, sw, sh);
+                ctx.drawImage(img, 0, 0);
+                ctx.globalAlpha = opacity;
+                const scaleW = img.width * 0.3;
+                const scaleH = wm.height * (scaleW / wm.width);
+                ctx.drawImage(wm, img.width - scaleW - 20, img.height - scaleH - 20, scaleW, scaleH);
                 ctx.globalAlpha = 1.0;
-                zip.file(`${i+1}.webp`, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
+                zip.file(`${String(i + 1).padStart(3, '0')}.webp`, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
+                notify(`Applying: ${i+1}/${files.length}`);
             }
-            saveAs(await zip.generateAsync({type:'blob'}), "watermarked.zip");
-            notify("", false);
+            saveAs(await zip.generateAsync({type:'blob'}), "branded_images.zip");
+            notify("Branding Applied", false);
+        }
+
+        // 5. Comic Merger Logic
+        async function runComicMerger() {
+            const files = [...document.getElementById('comicFiles').files];
+            const zipName = document.getElementById('comicZipName').value || "comic_export";
+            const wm = await loadAsset("watermark.png");
+            if (!files.length || !wm) return;
+
+            const zip = new JSZip();
+            const OVERLAP = 250;
+            let exportIdx = 1;
+
+            for (let i = 0; i < files.length; i += 10) {
+                const batch = files.slice(i, i + 10);
+                const imgs = await Promise.all(batch.map(loadImage));
+                const w = imgs[0].width;
+                let hTotal = 0;
+                imgs.forEach((img, j) => hTotal += (i + j === 0) ? img.height : img.height - OVERLAP);
+
+                canvas.width = w; canvas.height = hTotal;
+                let y = 0;
+                imgs.forEach((img, j) => {
+                    if (i + j === 0) { ctx.drawImage(img, 0, y); y += img.height; }
+                    else { ctx.drawImage(img, 0, OVERLAP, w, img.height - OVERLAP, 0, y, w, img.height - OVERLAP); y += img.height - OVERLAP; }
+                });
+
+                ctx.globalAlpha = 0.4;
+                const scW = w * 0.25;
+                const scH = wm.height * (scW / wm.width);
+                ctx.drawImage(wm, w - scW - 20, hTotal - scH - 20, scW, scH);
+                ctx.globalAlpha = 1.0;
+
+                zip.file(`${String(exportIdx++).padStart(3, '0')}.webp`, await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9)));
+                notify(`Merging Episode Part: ${exportIdx-1}`);
+            }
+            saveAs(await zip.generateAsync({type:'blob'}), `${zipName}.zip`);
+            notify("Export Complete", false);
         }
     </script>
 </body>
