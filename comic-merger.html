@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaToolkit Pro | Comic Merger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .sidebar { background-color: #0f172a; min-height: 100vh; }
+        .nav-item { transition: all 0.2s ease; color: #94a3b8; border-left: 4px solid transparent; display: block; }
+        .nav-item:hover { background-color: #1e293b; color: #f8fafc; }
+        .nav-item.active { background-color: #1e293b; color: #6366f1; border-left: 4px solid #6366f1; font-weight: 600; }
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 2rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-action { background: #4f46e5; color: white; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: background 0.2s; width: 100%; }
+        .btn-action:hover { background: #4338ca; }
+        input[type="file"]::file-selector-button { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 0.5rem; color: #475569; font-weight: 600; cursor: pointer; margin-right: 1rem; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row">
+
+    <aside class="sidebar w-full md:w-64 flex flex-col shadow-xl">
+        <div class="p-8 border-b border-slate-800">
+            <h1 class="text-xl font-bold text-white tracking-tight">Toolkit <span class="text-indigo-500">Pro</span></h1>
+            <p class="text-slate-500 text-[10px] uppercase tracking-widest mt-1 font-bold">Multi-Page Architecture</p>
+        </div>
+        <nav class="flex-1 py-4">
+            <a href="index.html" class="nav-item px-8 py-4 text-sm">Dashboard Home</a>
+            <a href="comic-merger.html" class="nav-item active px-8 py-4 text-sm">Comic Merger</a>
+            <a href="smart-combiner.html" class="nav-item px-8 py-4 text-sm">Smart Combiner</a>
+            <a href="frame-extractor.html" class="nav-item px-8 py-4 text-sm">Frame Extractor</a>
+            <a href="image-splitter.html" class="nav-item px-8 py-4 text-sm">Image Splitter</a>
+            <a href="watermark-studio.html" class="nav-item px-8 py-4 text-sm">Watermark Studio</a>
+        </nav>
+        <div class="p-4 bg-slate-900/50 border-t border-slate-800 text-[10px] text-slate-500 text-center uppercase tracking-widest">
+            Single Repo System
+        </div>
+    </aside>
+
+    <main class="flex-1 bg-slate-50 p-6 md:p-12 overflow-y-auto">
+        <div id="status" class="hidden fixed top-0 left-0 right-0 bg-indigo-600 text-white text-center py-2 text-xs font-bold z-50 tracking-wider">SORTING & PROCESSING ASSETS...</div>
+        
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Comic Merger Pro</h2>
+                <p class="text-slate-500 mt-2 text-sm leading-relaxed">
+                    Processes vertical batches with a dynamic 15.6% overlap based on screen dimensions. Input filenames are automatically sorted alphanumeric before stitching to preserve storyline sequence.
+                </p>
+            </div>
+            
+            <div class="card space-y-6">
+                <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-500 italic">
+                    Pipeline Status: Auto-sorting enabled. Outputs strictly structured into sequential WebP archives. Ensure 'watermark.png' is in the root directory.
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Upload Source Sheets</label>
+                    <input type="file" id="comicFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Archive Export Designation</label>
+                    <input type="text" id="comicZipName" placeholder="Project Name (e.g., Episode_01)" class="w-full p-3 border rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+                
+                <button onclick="runComicMerger()" class="btn-action">Execute Professional Merge</button>
+            </div>
+        </div>
+    </main>
+
+    <canvas id="masterCanvas" class="hidden"></canvas>
+
+    <script>
+        const status = document.getElementById('status');
+        const canvas = document.getElementById('masterCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function notify(text, show = true) {
+            status.innerText = text;
+            status.classList.toggle('hidden', !show);
+        }
+
+        const loadImage = (file) => new Promise(res => {
+            const img = new Image();
+            img.onload = () => { URL.revokeObjectURL(img.src); res(img); };
+            img.src = URL.createObjectURL(file);
+        });
+
+        const loadAsset = (path) => new Promise(res => {
+            const img = new Image();
+            img.onload = () => res(img);
+            img.onerror = () => { alert("Error: 'watermark.png' asset missing from directory root."); res(null); };
+            img.src = path;
+        });
+
+        async function runComicMerger() {
+            // Step 1: Sequential Alphanumeric Name Sorting
+            const files = [...document.getElementById('comicFiles').files].sort((a, b) => {
+                return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+            const zipName = document.getElementById('comicZipName').value || "comic_package";
+            const wm = await loadAsset("watermark.png");
+            
+            if (!files.length) return alert("Select target images to merge.");
+            if (!wm) return;
+
+            const zip = new JSZip();
+            notify("SORTING & PROCESSING COMIC FILES...");
+
+            // Process in groups of 10 images
+            for (let i = 0; i < files.length; i += 10) {
+                const batch = files.slice(i, i + 10);
+                const imgs = await Promise.all(batch.map(loadImage));
+                
+                // Track dynamic maximum width to handle separate device ratios gracefully
+                const targetW = Math.max(...imgs.map(img => img.width));
+                
+                let hTotal = 0;
+                const heights = [];
+                const overlaps = [];
+
+                // Calculate ratios and dynamic 15.6% overlap heights
+                imgs.forEach((img, j) => {
+                    const sH = img.height * (targetW / img.width);
+                    heights.push(sH);
+                    
+                    const ov = Math.floor(sH * 0.156);
+                    overlaps.push(ov);
+                    
+                    hTotal += (i + j === 0) ? sH : (sH - ov);
+                });
+
+                canvas.width = targetW; 
+                canvas.height = hTotal;
+                let y = 0;
+
+                // Render loop onto canvas
+                imgs.forEach((img, j) => {
+                    const sH = heights[j];
+                    const ov = overlaps[j];
+                    
+                    if (i + j === 0) { 
+                        ctx.drawImage(img, 0, 0, targetW, sH); 
+                        y += sH; 
+                    } else {
+                        const srcOv = ov * (img.width / targetW);
+                        ctx.drawImage(img, 0, srcOv, img.width, img.height - srcOv, 0, y - ov, targetW, sH - ov);
+                        y += (sH - ov);
+                    }
+                });
+
+                // Composite bottom branding layer
+                ctx.globalAlpha = 0.4;
+                const sw = targetW * 0.25; 
+                const sh = wm.height * (sw / wm.width);
+                ctx.drawImage(wm, targetW - sw - 20, hTotal - sh - 20, sw, sh);
+                ctx.globalAlpha = 1.0;
+
+                // Output conversion to pure structured WebP sequence
+                const blob = await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9));
+                const fileName = `part_${String(Math.floor(i/10) + 1).padStart(3, '0')}.webp`;
+                zip.file(fileName, blob);
+                
+                notify(`MERGING PARTIAL TRACK: ${Math.floor(i/10) + 1}`);
+            }
+            
+            const content = await zip.generateAsync({type:'blob'});
+            saveAs(content, `${zipName}.zip`);
+            notify("", false);
+        }
+    </script>
+</body>
+</html>
