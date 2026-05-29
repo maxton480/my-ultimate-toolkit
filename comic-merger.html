@@ -53,7 +53,7 @@
             
             <div class="card space-y-6">
                 <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-500 italic">
-                    Pipeline Status: Alpha channel alpha fix enabled. Sorting engine active. Rendering target format: High-efficiency WebP blocks. Ensure 'watermark.png' is in the root directory.
+                    Pipeline Status: Canvas solid white base active. Sorting engine active. Naming schema: Strict 001.webp ordering format. Ensure 'watermark.png' is in the root directory.
                 </div>
                 
                 <div>
@@ -76,9 +76,7 @@
     <script>
         const status = document.getElementById('status');
         const canvas = document.getElementById('masterCanvas');
-        
-        // CRITICAL FIX: alpha: true allow karega transparent layers ko correct overlay karne ke liye
-        const ctx = canvas.getContext('2d', { alpha: true });
+        const ctx = canvas.getContext('2d');
 
         function notify(text, show = true) {
             status.innerText = text;
@@ -112,6 +110,8 @@
             const zip = new JSZip();
             notify("SORTING & PROCESSING COMIC FILES...");
 
+            let outputCounter = 1;
+
             for (let i = 0; i < files.length; i += 10) {
                 const batch = files.slice(i, i + 10);
                 const imgs = await Promise.all(batch.map(loadImage));
@@ -132,8 +132,10 @@
                 canvas.width = targetW; 
                 canvas.height = hTotal;
                 
-                // Clear rect lagane se canvas purani memory flush karke transparency default set karta hai
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // CRITICAL BLACK RECTANGLE FIX: Pure white base apply karna empty rendering targets par
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
                 let y = 0;
 
                 imgs.forEach((img, j) => {
@@ -150,23 +152,22 @@
                     }
                 });
 
-                // FIX: Blending mode ko "source-over" set karna taaki watermark niche ki images ko block na kare
-                ctx.globalCompositeOperation = 'source-over';
+                // Composite transparent watermark layer safely over white-backed layers
                 ctx.globalAlpha = 0.4;
                 
                 const sw = targetW * 0.25; 
                 const sh = wm.height * (sw / wm.width);
                 
                 ctx.drawImage(wm, targetW - sw - 20, hTotal - sh - 20, sw, sh);
-                
-                // Reset alpha and blending flags back to default setup
                 ctx.globalAlpha = 1.0;
 
                 const blob = await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9));
-                const fileName = `part_${String(Math.floor(i/10) + 1).padStart(3, '0')}.webp`;
+                
+                // CRITICAL SEQUENTIAL NAMING FIX: Strictly named 001.webp, 002.webp...
+                const fileName = `${String(outputCounter++).padStart(3, '0')}.webp`;
                 zip.file(fileName, blob);
                 
-                notify(`MERGING PARTIAL TRACK: ${Math.floor(i/10) + 1}`);
+                notify(`MERGING PARTIAL TRACK: ${outputCounter - 1}`);
             }
             
             const content = await zip.generateAsync({type:'blob'});
