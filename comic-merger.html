@@ -53,7 +53,7 @@
             
             <div class="card space-y-6">
                 <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-500 italic">
-                    Pipeline Status: Auto-sorting enabled. Outputs strictly structured into sequential WebP archives. Ensure 'watermark.png' is in the root directory.
+                    Pipeline Status: Alpha channel alpha fix enabled. Sorting engine active. Rendering target format: High-efficiency WebP blocks. Ensure 'watermark.png' is in the root directory.
                 </div>
                 
                 <div>
@@ -76,7 +76,9 @@
     <script>
         const status = document.getElementById('status');
         const canvas = document.getElementById('masterCanvas');
-        const ctx = canvas.getContext('2d');
+        
+        // CRITICAL FIX: alpha: true allow karega transparent layers ko correct overlay karne ke liye
+        const ctx = canvas.getContext('2d', { alpha: true });
 
         function notify(text, show = true) {
             status.innerText = text;
@@ -97,7 +99,6 @@
         });
 
         async function runComicMerger() {
-            // Step 1: Sequential Alphanumeric Name Sorting
             const files = [...document.getElementById('comicFiles').files].sort((a, b) => {
                 return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
             });
@@ -111,34 +112,30 @@
             const zip = new JSZip();
             notify("SORTING & PROCESSING COMIC FILES...");
 
-            // Process in groups of 10 images
             for (let i = 0; i < files.length; i += 10) {
                 const batch = files.slice(i, i + 10);
                 const imgs = await Promise.all(batch.map(loadImage));
-                
-                // Track dynamic maximum width to handle separate device ratios gracefully
                 const targetW = Math.max(...imgs.map(img => img.width));
                 
                 let hTotal = 0;
                 const heights = [];
                 const overlaps = [];
 
-                // Calculate ratios and dynamic 15.6% overlap heights
                 imgs.forEach((img, j) => {
                     const sH = img.height * (targetW / img.width);
                     heights.push(sH);
-                    
                     const ov = Math.floor(sH * 0.156);
                     overlaps.push(ov);
-                    
                     hTotal += (i + j === 0) ? sH : (sH - ov);
                 });
 
                 canvas.width = targetW; 
                 canvas.height = hTotal;
+                
+                // Clear rect lagane se canvas purani memory flush karke transparency default set karta hai
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 let y = 0;
 
-                // Render loop onto canvas
                 imgs.forEach((img, j) => {
                     const sH = heights[j];
                     const ov = overlaps[j];
@@ -153,14 +150,18 @@
                     }
                 });
 
-                // Composite bottom branding layer
+                // FIX: Blending mode ko "source-over" set karna taaki watermark niche ki images ko block na kare
+                ctx.globalCompositeOperation = 'source-over';
                 ctx.globalAlpha = 0.4;
+                
                 const sw = targetW * 0.25; 
                 const sh = wm.height * (sw / wm.width);
+                
                 ctx.drawImage(wm, targetW - sw - 20, hTotal - sh - 20, sw, sh);
+                
+                // Reset alpha and blending flags back to default setup
                 ctx.globalAlpha = 1.0;
 
-                // Output conversion to pure structured WebP sequence
                 const blob = await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9));
                 const fileName = `part_${String(Math.floor(i/10) + 1).padStart(3, '0')}.webp`;
                 zip.file(fileName, blob);
