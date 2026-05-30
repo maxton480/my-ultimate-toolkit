@@ -53,7 +53,7 @@
             
             <div class="card space-y-6">
                 <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-500 italic">
-                    Pipeline Status: Canvas solid white base active. Sorting engine active. Naming schema: Strict 001.webp ordering format. Ensure 'watermark.png' is in the root directory.
+                    Pipeline Status: Coordinate overflow fix active. Sorting engine active. Naming schema: Strict 001.webp ordering format. Ensure 'watermark.png' is in the root directory.
                 </div>
                 
                 <div>
@@ -129,10 +129,11 @@
                     hTotal += (i + j === 0) ? sH : (sH - ov);
                 });
 
+                // Set accurate tracking canvas constraints
                 canvas.width = targetW; 
                 canvas.height = hTotal;
                 
-                // CRITICAL BLACK RECTANGLE FIX: Pure white base apply karna empty rendering targets par
+                // Clear any residual memory map bounds
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
@@ -152,18 +153,23 @@
                     }
                 });
 
-                // Composite transparent watermark layer safely over white-backed layers
+                // FIXED WATERMARK POSITION PIPELINE:
+                // Isme hum directly canvas ki final calculated client bounding width/height ka use kar rahe hain
                 ctx.globalAlpha = 0.4;
                 
-                const sw = targetW * 0.25; 
+                const sw = canvas.width * 0.25; 
                 const sh = wm.height * (sw / wm.width);
                 
-                ctx.drawImage(wm, targetW - sw - 20, hTotal - sh - 20, sw, sh);
+                // Pure target bounding surface parameters ko protect karte hue rendering position coordinates set kiye hain
+                const watermarkX = canvas.width - sw - 20;
+                const watermarkY = canvas.height - sh - 20;
+                
+                ctx.drawImage(wm, watermarkX, watermarkY, sw, sh);
                 ctx.globalAlpha = 1.0;
 
                 const blob = await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9));
                 
-                // CRITICAL SEQUENTIAL NAMING FIX: Strictly named 001.webp, 002.webp...
+                // Outname set strictly to 001.webp, 002.webp format mapping rules
                 const fileName = `${String(outputCounter++).padStart(3, '0')}.webp`;
                 zip.file(fileName, blob);
                 
