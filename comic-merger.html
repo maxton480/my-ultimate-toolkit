@@ -8,22 +8,86 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:#111;color:#fff;font-family:Arial;padding:20px;}
-.container{max-width:900px;margin:auto;}
-h1{margin-bottom:20px;}
-.card{background:#1b1b1b;padding:20px;border-radius:12px;margin-bottom:20px;}
-input[type=file],input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;margin-top:10px;}
-button{padding:12px 20px;border:none;border-radius:8px;cursor:pointer;font-size:16px;margin-top:10px;}
-.primary{background:#4caf50;color:white;}
-.progressBox{width:100%;height:25px;background:#333;border-radius:20px;overflow:hidden;margin-top:20px;}
-.progressBar{height:100%;width:0%;background:#4caf50;transition:.2s;}
-.status{margin-top:10px;}
-.log{margin-top:15px;white-space:pre-wrap;font-size:14px;color:#ccc;}
-canvas{display:none;}
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#111;
+    color:#fff;
+    font-family:Arial,sans-serif;
+    padding:20px;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+h1{
+    margin-bottom:20px;
+}
+
+.card{
+    background:#1b1b1b;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+
+input[type=file]{
+    width:100%;
+    padding:10px;
+}
+
+button{
+    padding:12px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+    margin-top:10px;
+}
+
+.primary{
+    background:#4caf50;
+    color:white;
+}
+
+.progressBox{
+    width:100%;
+    height:25px;
+    background:#333;
+    border-radius:20px;
+    overflow:hidden;
+    margin-top:20px;
+}
+
+.progressBar{
+    height:100%;
+    width:0%;
+    background:#4caf50;
+    transition:.2s;
+}
+
+.status{
+    margin-top:10px;
+}
+
+.log{
+    margin-top:15px;
+    white-space:pre-wrap;
+    font-size:14px;
+    color:#ccc;
+}
+
+canvas{
+    display:none;
+}
 </style>
 </head>
-
 <body>
 
 <div class="container">
@@ -33,20 +97,39 @@ canvas{display:none;}
 <div class="card">
 
 <p>Select all chapter images.</p>
+<br>
 
-<input id="imageInput" type="file" multiple accept="image/*">
+<input
+id="imageInput"
+type="file"
+multiple
+accept="image/*">
 
-<!-- 🔥 NEW INPUT -->
-<input id="zipName" type="text" placeholder="Enter ZIP name (optional)">
+<br><br>
 
-<button class="primary" onclick="startMerge()">Merge Images</button>
+<button
+class="primary"
+onclick="startMerge()">
+Merge Images
+</button>
 
 <div class="progressBox">
-<div id="progressBar" class="progressBar"></div>
+<div
+id="progressBar"
+class="progressBar">
+</div>
 </div>
 
-<div id="status" class="status">Idle</div>
-<div id="log" class="log"></div>
+<div
+id="status"
+class="status">
+Idle
+</div>
+
+<div
+id="log"
+class="log">
+</div>
 
 </div>
 
@@ -63,7 +146,8 @@ function log(msg){
 }
 
 function setProgress(percent){
-    document.getElementById("progressBar").style.width = percent + "%";
+    document.getElementById("progressBar").style.width =
+        percent + "%";
 }
 
 function setStatus(text){
@@ -71,165 +155,383 @@ function setStatus(text){
 }
 
 function naturalSort(files){
+
     return [...files].sort((a,b)=>
-        a.name.localeCompare(undefined,{numeric:true,sensitivity:"base"})
+        a.name.localeCompare(
+            b.name,
+            undefined,
+            {
+                numeric:true,
+                sensitivity:"base"
+            }
+        )
     );
+
 }
 
 function loadImage(src){
+
     return new Promise((resolve,reject)=>{
+
         const img = new Image();
-        img.onload = ()=>resolve(img);
+
+        img.onload = () => resolve(img);
+
         img.onerror = reject;
+
         img.src = src;
+
     });
+
 }
 
 async function fileToImage(file){
+
     const url = URL.createObjectURL(file);
+
     const img = await loadImage(url);
+
     URL.revokeObjectURL(url);
+
     return img;
+
 }
 
 async function loadWatermark(){
+
     try{
-        return await loadImage("watermark.png");
-    }catch{
-        return null;
+
+        const img = await loadImage("watermark.png");
+
+        return img;
+
     }
+    catch{
+
+        log("watermark.png not found.");
+
+        return null;
+
+    }
+
 }
 
 function blobFromCanvas(canvas){
+
     return new Promise(resolve=>{
-        canvas.toBlob(resolve,"image/webp",WEBP_QUALITY);
+
+        canvas.toBlob(
+            resolve,
+            "image/webp",
+            WEBP_QUALITY
+        );
+
     });
+
 }
+    async function startMerge(){
 
-async function startMerge(){
-
-    const input = document.getElementById("imageInput");
+    const input =
+        document.getElementById("imageInput");
 
     if(input.files.length === 0){
+
         alert("Select images first.");
+
         return;
+
     }
 
     setStatus("Loading files...");
 
-    const files = naturalSort(Array.from(input.files));
+    log("Sorting images...");
+
+    const files =
+        naturalSort(
+            Array.from(input.files)
+        );
 
     const zip = new JSZip();
 
-    const watermark = await loadWatermark();
+    const watermark =
+        await loadWatermark();
 
     let outputIndex = 1;
+
     let globalImageIndex = 0;
 
-    const totalOutputs = Math.ceil(files.length / IMAGES_PER_OUTPUT);
+    const totalOutputs =
+        Math.ceil(
+            files.length /
+            IMAGES_PER_OUTPUT
+        );
 
-    for(let batchStart=0; batchStart<files.length; batchStart+=IMAGES_PER_OUTPUT){
+    for(
+        let batchStart = 0;
+        batchStart < files.length;
+        batchStart += IMAGES_PER_OUTPUT
+    ){
 
-        const batch = files.slice(batchStart,batchStart+IMAGES_PER_OUTPUT);
+        const batch =
+            files.slice(
+                batchStart,
+                batchStart + IMAGES_PER_OUTPUT
+            );
 
-        setStatus(`Loading output ${outputIndex} / ${totalOutputs}`);
+        setStatus(
+            `Loading output ${
+                outputIndex
+            } / ${totalOutputs}`
+        );
 
         const images = [];
 
         for(const file of batch){
-            images.push(await fileToImage(file));
+
+            const img =
+                await fileToImage(file);
+
+            images.push(img);
+
         }
 
-        let targetWidth = Math.max(...images.map(i=>i.width));
+        let targetWidth = 0;
+
+        for(const img of images){
+
+            targetWidth =
+                Math.max(
+                    targetWidth,
+                    img.width
+                );
+
+        }
 
         const renderData = [];
+
         let finalHeight = 0;
 
         for(const img of images){
 
+            const isFirstImage =
+                globalImageIndex === 0;
+
             let cropTop = 0;
 
-            if(globalImageIndex !== 0){
-                cropTop = Math.floor(img.height * (CROP_PERCENT/100));
+            if(!isFirstImage){
+
+                cropTop =
+                    Math.floor(
+                        img.height *
+                        (CROP_PERCENT/100)
+                    );
+
             }
 
-            const sourceHeight = img.height - cropTop;
-            const scale = targetWidth / img.width;
-            const drawHeight = Math.floor(sourceHeight * scale);
+            const sourceHeight =
+                img.height - cropTop;
 
-            renderData.push({img,cropTop,drawHeight});
+            const scale =
+                targetWidth /
+                img.width;
+
+            const drawHeight =
+                Math.floor(
+                    sourceHeight *
+                    scale
+                );
+
+            renderData.push({
+
+                img,
+                cropTop,
+                drawHeight
+
+            });
 
             finalHeight += drawHeight;
+
             globalImageIndex++;
+
         }
 
-        const canvas = document.createElement("canvas");
-        canvas.width = targetWidth;
-        canvas.height = finalHeight;
+        const canvas =
+            document.createElement(
+                "canvas"
+            );
 
-        const ctx = canvas.getContext("2d");
+        canvas.width =
+            targetWidth;
+
+        canvas.height =
+            finalHeight;
+
+        const ctx =
+            canvas.getContext("2d");
 
         let y = 0;
 
         for(const item of renderData){
 
+            const {
+                img,
+                cropTop,
+                drawHeight
+            } = item;
+
             ctx.drawImage(
-                item.img,
-                0,item.cropTop,
-                item.img.width,item.img.height-item.cropTop,
-                0,y,
-                targetWidth,item.drawHeight
+
+                img,
+
+                0,
+                cropTop,
+
+                img.width,
+                img.height - cropTop,
+
+                0,
+                y,
+
+                targetWidth,
+                drawHeight
+
             );
 
             if(watermark){
-                const wmWidth = Math.min(targetWidth*0.14,watermark.width);
-                const ratio = wmWidth/watermark.width;
-                const wmHeight = watermark.height*ratio;
+
+                const wmWidth =
+                    Math.min(
+                        targetWidth * 0.14,
+                        watermark.width
+                    );
+
+                const ratio =
+                    wmWidth /
+                    watermark.width;
+
+                const wmHeight =
+                    watermark.height *
+                    ratio;
+
+                const wmX =
+                    targetWidth -
+                    wmWidth -
+                    15;
+
+                const wmY =
+                    y +
+                    drawHeight -
+                    wmHeight -
+                    15;
 
                 ctx.drawImage(
+
                     watermark,
-                    targetWidth-wmWidth-15,
-                    y+item.drawHeight-wmHeight-15,
+
+                    wmX,
+                    wmY,
+
                     wmWidth,
                     wmHeight
+
                 );
+
             }
 
-            y += item.drawHeight;
+            y += drawHeight;
+
         }
 
-        const blob = await blobFromCanvas(canvas);
+        setStatus(
+            `Encoding output ${
+                outputIndex
+            }`
+        );
 
-        zip.file(String(outputIndex).padStart(3,"0")+".webp", blob);
+        const blob =
+            await blobFromCanvas(
+                canvas
+            );
 
-        setProgress(Math.round((outputIndex/totalOutputs)*100));
+        const fileName =
+            String(outputIndex)
+            .padStart(3,"0")
+            + ".webp";
+
+        zip.file(
+            fileName,
+            blob
+        );
+
+        const progress =
+            Math.round(
+                (
+                    outputIndex /
+                    totalOutputs
+                ) * 100
+            );
+
+        setProgress(progress);
+
+        log(
+            "Created: " +
+            fileName
+        );
 
         outputIndex++;
+
     }
+        setStatus("Creating ZIP...");
 
-    setStatus("Creating ZIP...");
+    const zipBlob =
+        await zip.generateAsync({
 
-    const zipBlob = await zip.generateAsync({
-        type:"blob",
-        compression:"DEFLATE",
-        compressionOptions:{level:9}
-    });
+            type:"blob",
 
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(zipBlob);
+            compression:"DEFLATE",
 
-    let zipName = document.getElementById("zipName").value.trim();
-    if(!zipName) zipName = "manhwa_outputs";
+            compressionOptions:{
+                level:9
+            }
 
-    link.download = zipName + ".zip";
+        });
 
-    document.body.appendChild(link);
+    const link =
+        document.createElement("a");
+
+    link.href =
+        URL.createObjectURL(
+            zipBlob
+        );
+
+    link.download =
+        "manhwa_outputs.zip";
+
+    document.body.appendChild(
+        link
+    );
+
     link.click();
+
     link.remove();
 
+    URL.revokeObjectURL(
+        link.href
+    );
+
     setProgress(100);
-    setStatus("Finished");
+
+    setStatus(
+        "Finished"
+    );
+
+    log("");
     log("Done.");
+    log(
+        "Outputs: " +
+        (outputIndex - 1)
+    );
+
 }
 
 </script>
