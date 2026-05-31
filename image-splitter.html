@@ -1,35 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaToolkit Pro | Image Splitter</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .sidebar { background-color: #0f172a; min-height: 100vh; }
-        .nav-item { transition: all 0.2s ease; color: #94a3b8; border-left: 4px solid transparent; display: block; }
-        .nav-item:hover { background-color: #1e293b; color: #f8fafc; }
-        .nav-item.active { background-color: #1e293b; color: #6366f1; border-left: 4px solid #6366f1; font-weight: 600; }
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 2rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .btn-action { background: #4f46e5; color: white; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: background 0.2s; width: 100%; }
-        .btn-action:hover { background: #4338ca; }
-        input[type="file"]::file-selector-button { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 0.5rem; color: #475569; font-weight: 600; cursor: pointer; margin-right: 1rem; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediaToolkit Pro | Image Splitter</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body{
+    font-family:'Inter',sans-serif;
+    background:#f8fafc;
+}
+
+.sidebar{
+    background:#0f172a;
+    min-height:100vh;
+}
+
+.nav-item{
+    transition:all .2s;
+    color:#94a3b8;
+    border-left:4px solid transparent;
+    display:block;
+}
+
+.nav-item:hover{
+    background:#1e293b;
+    color:white;
+}
+
+.nav-item.active{
+    background:#1e293b;
+    color:#6366f1;
+    border-left:4px solid #6366f1;
+}
+
+.card{
+    background:white;
+    border:1px solid #e2e8f0;
+    border-radius:12px;
+    padding:24px;
+    box-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+
+.btn-action{
+    background:#4f46e5;
+    color:white;
+    padding:12px 20px;
+    border-radius:8px;
+    font-weight:600;
+    transition:.2s;
+}
+
+.btn-action:hover{
+    background:#4338ca;
+}
+
+.preview-image{
+    max-width:100%;
+    max-height:400px;
+    border-radius:10px;
+}
+
+.slice-preview{
+    border:1px solid #ddd;
+    border-radius:8px;
+    overflow:hidden;
+}
+</style>
 </head>
+
 <body class="flex flex-col md:flex-row">
 
-    <aside class="sidebar w-full md:w-64 flex flex-col shadow-xl">
-        <div class="p-8 border-b border-slate-800">
-            <h1 class="text-xl font-bold text-white tracking-tight">Toolkit <span class="text-indigo-500">Pro</span></h1>
-            <p class="text-slate-500 text-[10px] uppercase tracking-widest mt-1 font-bold">Multi-Page Architecture</p>
+<!-- Sidebar -->
+<aside class="sidebar w-full md:w-64 flex flex-col">
+    <div class="p-8 border-b border-slate-800">
+        <h1 class="text-xl font-bold text-white">
+            Toolkit <span class="text-indigo-500">Pro</span>
+        </h1>
+        <p class="text-slate-500 text-xs mt-1">
+            Multi-Page Architecture
+        </p>
+    </div>
+
+    <nav class="flex-1 py-4">
+        <a href="#" class="nav-item px-8 py-4 text-sm">Dashboard Home</a>
+        <a href="#" class="nav-item px-8 py-4 text-sm">Comic Merger</a>
+        <a href="#" class="nav-item px-8 py-4 text-sm">Smart Combiner</a>
+        <a href="#" class="nav-item px-8 py-4 text-sm">Frame Extractor</a>
+        <a href="#" class="nav-item active px-8 py-4 text-sm">Image Splitter</a>
+    </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="flex-1 p-6 md:p-10">
+
+    <div class="mb-8">
+        <h2 class="text-3xl font-bold text-slate-800">
+            Image Splitter
+        </h2>
+        <p class="text-slate-500 mt-2">
+            Split any image into multiple equal parts and download them as ZIP.
+        </p>
+    </div>
+
+    <div class="card">
+
+        <div class="mb-6">
+            <label class="block font-medium mb-2">Upload Image</label>
+            <input type="file" id="imageInput" accept="image/*">
         </div>
-        <nav class="flex-1 py-4">
-            <a href="index.html" class="nav-item px-8 py-4 text-sm">Dashboard Home</a>
-            <a href="comic-merger.html" class="nav-item px-8 py-4 text-sm">Comic Merger</a>
-            <a href="smart-combiner.html" class="nav-item px-8 py-4 text-sm">Smart Combiner</a>
-            <a href="frame-extractor.
-              
+
+        <div class="grid md:grid-cols-2 gap-4 mb-6">
+
+            <div>
+                <label class="block font-medium mb-2">
+                    Number of Parts
+                </label>
+                <input
+                    type="number"
+                    id="parts"
+                    value="3"
+                    min="2"
+                    class="w-full border rounded-lg p-3"
+                >
+            </div>
+
+            <div>
+                <label class="block font-medium mb-2">
+                    Split Direction
+                </label>
+                <select
+                    id="direction"
+                    class="w-full border rounded-lg p-3"
+                >
+                    <option value="vertical">Vertical</option>
+                    <option value="horizontal">Horizontal</option>
+                </select>
+            </div>
+
+        </div>
+
+        <button id="splitBtn" class="btn-action mb-6">
+            Split Image
+        </button>
+
+        <div class="mb-6">
+            <img id="preview" class="preview-image hidden">
+        </div>
+
+        <div id="results" class="grid md:grid-cols-3 gap-4"></div>
+
+        <button
+            id="downloadZip"
+            class="btn-action mt-6 hidden"
+        >
+            Download ZIP
+        </button>
+
+    </div>
+
+</main>
+
+<script>
+const imageInput = document.getElementById("imageInput");
+const preview = document.getElementById("preview");
+const splitBtn = document.getElementById("splitBtn");
+const results = document.getElementById("results");
+const downloadZip = document.getElementById("downloadZip");
+
+let image = new Image();
+let splitFiles = [];
+
+imageInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event){
+        image.src = event.target.result;
+        preview.src = event.target.result;
+        preview.classList.remove("hidden");
+    };
+
+    reader.readAsDataURL(file);
+});
+
+splitBtn.addEventListener("click", () => {
+
+    if (!image.src){
+        alert("Please upload an image first.");
+        return;
+    }
+
+    results.innerHTML = "";
+    splitFiles = [];
+
+    const parts =
+        parseInt(document.getElementById("parts").value);
+
+    const direction =
+        document.getElementById("direction").value;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    for(let i=0;i<parts;i++){
+
+        if(direction==="vertical"){
+            canvas.width = image.width / parts;
+            canvas.height = image.height;
+
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            ctx.drawImage(
+                image,
+                i * canvas.width,
+                0,
+                canvas.width,
+                image.height,
+                0,
+                0,
+                canvas.width,
+                image.height
+            );
+        }
+        else{
+            canvas.width = image.width;
+            canvas.height = image.height / parts;
+
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            ctx.drawImage(
+                image,
+                0,
+                i * canvas.height,
+                image.width,
+                canvas.height,
+                0,
+                0,
+                image.width,
+                canvas.height
+            );
+        }
+
+        const dataUrl = canvas.toDataURL("image/png");
+
+        splitFiles.push({
+            name:`part_${i+1}.png`,
+            data:dataUrl
+        });
+
+        const div = document.createElement("div");
+        div.className = "slice-preview";
+
+        div.innerHTML =
+            `<img src="${dataUrl}" class="w-full">`;
+
+        results.appendChild(div);
+    }
+
+    downloadZip.classList.remove("hidden");
+});
+
+downloadZip.addEventListener("click", async () => {
+
+    const zip = new JSZip();
+
+    splitFiles.forEach(file => {
+
+        const base64 =
+            file.data.split(",")[1];
+
+        zip.file(
+            file.name,
+            base64,
+            {base64:true}
+        );
+    });
+
+    const content =
+        await zip.generateAsync({
+            type:"blob"
+        });
+
+    saveAs(content,"split_images.zip");
+});
+</script>
+
+</body>
+</html>
