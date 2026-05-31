@@ -53,7 +53,7 @@
             
             <div class="card space-y-6">
                 <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-500 italic">
-                    Pipeline Status: Intelligent Chroma key transparency fix enabled. Naming schema: Strict 001.webp ordering format. Ensure 'watermark.png' is in the root directory.
+                    Pipeline Status: Pure merger mode active (No Watermark). Sorting engine active. Naming schema: Strict 001.webp ordering format.
                 </div>
                 
                 <div>
@@ -89,54 +89,14 @@
             img.src = URL.createObjectURL(file);
         });
 
-        // INTELLIGENT WATERMARK PROCESSING PIPELINE (WHITE REMOVAL ENGINE)
-        const loadAssetAndMakeTransparent = (path) => new Promise(res => {
-            const img = new Image();
-            img.onload = () => {
-                // Ek temporary canvas par logo draw karke uske pixels modify karna
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCanvas.width = img.width;
-                tempCanvas.height = img.height;
-                tempCtx.drawImage(img, 0, 0);
-
-                const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-                const data = imgData.data;
-
-                // Har n-pure white pixel (RGB > 240) ko fully transparent alpha = 0 kar dena
-                for (let i = 0; i < data.length; i += 4) {
-                    const r = data[i];
-                    const g = data[i + 1];
-                    const b = data[i + 2];
-                    
-                    // Agar pixel ka color pure white ya off-white background block hai
-                    if (r > 240 && g > 240 && b > 240) {
-                        data[i + 3] = 0; // Set transparency to 0%
-                    }
-                }
-                tempCtx.putImageData(imgData, 0, 0);
-                
-                // Canvas ko wapas safe image element bana kar return karna
-                const transparentImg = new Image();
-                transparentImg.onload = () => res(transparentImg);
-                transparentImg.src = tempCanvas.toDataURL();
-            };
-            img.onerror = () => { alert("Error: 'watermark.png' missing from root folder."); res(null); };
-            img.src = path;
-        });
-
         async function runComicMerger() {
+            // Step 1: Strict Alphanumeric Sorting
             const files = [...document.getElementById('comicFiles').files].sort((a, b) => {
                 return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
             });
 
             const zipName = document.getElementById('comicZipName').value || "comic_package";
-            
-            // Auto background detection execution call
-            const wm = await loadAssetAndMakeTransparent("watermark.png");
-            
             if (!files.length) return alert("Select target images to merge.");
-            if (!wm) return;
 
             const zip = new JSZip();
             notify("SORTING & PROCESSING COMIC FILES...");
@@ -163,6 +123,7 @@
                 canvas.width = targetW; 
                 canvas.height = hTotal;
                 
+                // Clear and initialize white space base
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
@@ -182,20 +143,10 @@
                     }
                 });
 
-                // Composite the newly isolated watermark asset cleanly over the graphics layer
-                ctx.globalAlpha = 0.5; // Optimized opacity for processed watermark layers
-                
-                const sw = canvas.width * 0.22; // Size slightly structured for sharp layout boundaries
-                const sh = wm.height * (sw / wm.width);
-                
-                const watermarkX = canvas.width - sw - 20;
-                const watermarkY = canvas.height - sh - 20;
-                
-                ctx.drawImage(wm, watermarkX, watermarkY, sw, sh);
-                ctx.globalAlpha = 1.0;
-
+                // Export directly into clean WebP blocks without overlay blockage
                 const blob = await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9));
                 
+                // Naming assigned strictly to 001.webp format maps
                 const fileName = `${String(outputCounter++).padStart(3, '0')}.webp`;
                 zip.file(fileName, blob);
                 
