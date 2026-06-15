@@ -75,7 +75,7 @@ const files=[...document.getElementById("imageInput").files]
 
 if(!files.length){alert("Select images");return;}
 
-const zipName=document.getElementById("zipName").value.trim()||"chapter";
+const zipName=document.getElementById("zipName").value.trim()||;
 
 const zip=new JSZip();
 const watermark=await loadWatermark();
