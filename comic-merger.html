@@ -1,212 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Manhwa Merger Pro V2</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<style>
-body{background:#111;color:#fff;font-family:Arial;padding:20px}
-.container{max-width:900px;margin:auto}
-.card{background:#1b1b1b;padding:20px;border-radius:12px}
-input,button{width:100%;padding:12px;margin-top:10px;border-radius:8px}
-button{background:#4caf50;color:#fff;border:none;cursor:pointer}
-.progress{height:24px;background:#333;border-radius:20px;overflow:hidden;margin-top:15px}
-.bar{height:100%;width:0;background:#4caf50}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manhwa Merger Pro V2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body { background: #111; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 500px; width: 100%; }
+        .card { background: #1b1b1b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        input, button { width: 100%; padding: 12px; margin-top: 15px; border-radius: 8px; border: none; box-sizing: border-box; }
+        input { background: #2a2a2a; color: #fff; }
+        button { background: #4caf50; color: #fff; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #45a049; }
+        .progress { height: 20px; background: #333; border-radius: 10px; overflow: hidden; margin-top: 20px; }
+        .bar { height: 100%; width: 0; background: #4caf50; transition: width 0.3s; }
+        #status { text-align: center; margin-top: 10px; font-size: 0.9em; color: #aaa; }
+    </style>
 </head>
 <body>
+
 <div class="container">
-<div class="card">
-<h2>Manhwa Merger Pro V2</h2>
+    <div class="card">
+        <h2 style="margin-top:0;">Manhwa Merger Pro V2</h2>
+        
+        <input id="zipName" placeholder="ZIP Name (default: chapter)" value="chapter">
+        <input id="imageInput" type="file" multiple accept="image/*">
+        
+        <button onclick="startMerge()">Merge Images</button>
 
-<input id="zipName" placeholder="ZIP Name" value="chapter">
-
-<input id="imageInput" type="file" multiple accept="image/*">
-
-<button onclick="startMerge()">Merge Images</button>
-
-<div class="progress"><div id="bar" class="bar"></div></div>
-<p id="status">Idle</p>
-
-</div>
+        <div class="progress"><div id="bar" class="bar"></div></div>
+        <p id="status">Idle</p>
+    </div>
 </div>
 
 <script>
-const IMAGES_PER_OUTPUT=10;
-const CROP_PERCENT=15.6;
-const WEBP_QUALITY=0.92;
+    const IMAGES_PER_OUTPUT = 10;
+    const CROP_PERCENT = 15.6;
+    const WEBP_QUALITY = 0.92;
 
-function p(v){document.getElementById("bar").style.width=v+"%"}
-function s(v){document.getElementById("status").textContent=v}
+    function p(v) { document.getElementById("bar").style.width = v + "%"; }
+    function s(v) { document.getElementById("status").textContent = v; }
 
-function loadImage(src){
-return new Promise((res,rej)=>{
-const img=new Image();
-img.onload=()=>res(img);
-img.onerror=rej;
-img.src=src;
-});
-}
-
-async function loadWatermark(){
-try{
-return await loadImage("./watermark.png");
-}catch(e){
-return null;
-}
-}
-
-  async function startMerge(){
-    const fileInput = document.getElementById("imageInput");
-    const files = [...fileInput.files]
-    .sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
-
-    if(!files.length){alert("Select images");return;}
-
-    // FIX 1: zipName agar khali ho to default value set ki
-    const zipName = document.getElementById("zipName").value.trim() || "chapter";
-
-    const zip = new JSZip();
-    const watermark = await loadWatermark(); // Agar file nahi mili to null return hoga
-
-    let out = 1;
-    let global = 0;
-    const total = Math.ceil(files.length / IMAGES_PER_OUTPUT);
-
-    for(let i = 0; i < files.length; i += IMAGES_PER_OUTPUT){
-
-        const batch = files.slice(i, i + IMAGES_PER_OUTPUT);
-        const images = [];
-
-        for(const f of batch) images.push(await fileToImage(f));
-
-        let width = Math.max(...images.map(x => x.width));
-
-        let data = [];
-        let finalHeight = 0;
-
-        for(const img of images){
-            // FIX 2: Check kiya ki kya ye pehli image hai ya nahi
-            let crop = (global === 0) ? 0 : Math.floor(img.height * (CROP_PERCENT / 100));
-            let scale = width / img.width;
-            let drawHeight = Math.floor((img.height - crop) * scale);
-
-            data.push({img, crop, drawHeight});
-            finalHeight += drawHeight;
-            global++;
-        }
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = finalHeight;
-        const ctx = canvas.getContext("2d");
-
-        let y = 0;
-        for(const d of data){
-            ctx.drawImage(
-                d.img,
-                0, d.crop,
-                d.img.width, d.img.height - d.crop,
-                0, y,
-                width, d.drawHeight
-            );
-            y += d.drawHeight;
-        }
-
-        // Watermark logic check
-        if(watermark){
-            const wmWidth = width * 0.40;
-            const ratio = wmWidth / watermark.width;
-            const wmHeight = watermark.height * ratio;
-            ctx.globalAlpha = 0.50;
-            ctx.drawImage(watermark, width - wmWidth - 20, (finalHeight / 2) - (wmHeight / 2), wmWidth, wmHeight);
-            ctx.drawImage(watermark, width - wmWidth - 20, finalHeight - wmHeight - 20, wmWidth, wmHeight);
-            ctx.globalAlpha = 1.0;
-        }
-
-        // Blob create karne ka tareeka
-        const blob = await canvasBlob(canvas);
-        zip.file(String(out).padStart(3, "0") + ".webp", blob);
-
-        s("Processing batch " + out + " of " + total);
-        p(Math.round((out / total) * 100));
-        out++;
+    function loadImage(src) {
+        return new Promise((res, rej) => {
+            const img = new Image();
+            img.onload = () => res(img);
+            img.onerror = rej;
+            img.src = src;
+        });
     }
 
-    const content = await zip.generateAsync({type:"blob"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(content);
-    a.download = zipName + ".zip";
-    a.click();
+    async function loadWatermark() {
+        try {
+            // Agar watermark.png file folder mein nahi hai, toh yeh gracefully skip ho jayega
+            const response = await fetch('./watermark.png');
+            if (!response.ok) return null;
+            const blob = await response.blob();
+            return await loadImage(URL.createObjectURL(blob));
+        } catch(e) { return null; }
+    }
 
-    s("Finished!");
-  }
+    async function fileToImage(file) {
+        const url = URL.createObjectURL(file);
+        const img = await loadImage(url);
+        URL.revokeObjectURL(url);
+        return img;
+    }
 
-const canvas=document.createElement("canvas");
-canvas.width=width;
-canvas.height=finalHeight;
+    async function startMerge() {
+        const files = [...document.getElementById("imageInput").files]
+            .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
-const ctx=canvas.getContext("2d");
+        if (!files.length) { alert("Please select images first!"); return; }
 
-let y=0;
+        const zipName = document.getElementById("zipName").value.trim() || "chapter";
+        const zip = new JSZip();
+        const watermark = await loadWatermark();
 
-for(const d of data){
+        let out = 1;
+        let global = 0;
+        const totalBatches = Math.ceil(files.length / IMAGES_PER_OUTPUT);
 
-ctx.drawImage(
-d.img,
-0,d.crop,
-d.img.width,d.img.height-d.crop,
-0,y,
-width,d.drawHeight
-);
+        for (let i = 0; i < files.length; i += IMAGES_PER_OUTPUT) {
+            const batch = files.slice(i, i + IMAGES_PER_OUTPUT);
+            const images = await Promise.all(batch.map(f => fileToImage(f)));
 
-y+=d.drawHeight;
-}
+            let width = Math.max(...images.map(x => x.width));
+            let data = [];
+            let finalHeight = 0;
 
-if(watermark){
+            images.forEach(img => {
+                let crop = (global === 0) ? 0 : Math.floor(img.height * (CROP_PERCENT / 100));
+                let scale = width / img.width;
+                let drawHeight = Math.floor((img.height - crop) * scale);
+                data.push({ img, crop, drawHeight });
+                finalHeight += drawHeight;
+                global++;
+            });
 
-const wmWidth=width*0.40;
-const ratio=wmWidth/watermark.width;
-const wmHeight=watermark.height*ratio;
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = finalHeight;
+            const ctx = canvas.getContext("2d");
 
-ctx.globalAlpha=0.50;
+            let y = 0;
+            data.forEach(d => {
+                ctx.drawImage(d.img, 0, d.crop, d.img.width, d.img.height - d.crop, 0, y, width, d.drawHeight);
+                y += d.drawHeight;
+            });
 
-ctx.drawImage(
-watermark,
-width-wmWidth-20,
-(finalHeight/2)-(wmHeight/2),
-wmWidth,
-wmHeight
-);
+            if (watermark) {
+                const wmWidth = width * 0.40;
+                const wmHeight = watermark.height * (wmWidth / watermark.width);
+                ctx.globalAlpha = 0.50;
+                ctx.drawImage(watermark, width - wmWidth - 20, (finalHeight / 2) - (wmHeight / 2), wmWidth, wmHeight);
+                ctx.drawImage(watermark, width - wmWidth - 20, finalHeight - wmHeight - 20, wmWidth, wmHeight);
+                ctx.globalAlpha = 1.0;
+            }
 
-ctx.drawImage(
-watermark,
-width-wmWidth-20,
-finalHeight-wmHeight-20,
-wmWidth,
-wmHeight
-);
+            const blob = await new Promise(r => canvas.toBlob(r, "image/webp", WEBP_QUALITY));
+            zip.file(String(out).padStart(3, "0") + ".webp", blob);
+            
+            p(Math.round((out / totalBatches) * 100));
+            s(`Processed batch ${out} of ${totalBatches}`);
+            out++;
+        }
 
-ctx.globalAlpha=1;
-}
-
-zip.file(String(out).padStart(3,"0")+".webp",await canvasBlob(canvas));
-
-p(Math.round((out/total)*100));
-out++;
-}
-
-const blob=await zip.generateAsync({type:"blob"});
-
-const a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download=zipName+".zip";
-a.click();
-
-s("Finished");
-p(100);
-}
+        const finalZip = await zip.generateAsync({ type: "blob" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(finalZip);
+        a.download = zipName + ".zip";
+        a.click();
+        s("Finished!");
+    }
 </script>
 </body>
 </html>
