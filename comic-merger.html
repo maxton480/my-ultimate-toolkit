@@ -3,16 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manhwa Merger Pro V2</title>
+    <title>Manhwa Merger Pro V2 - Smart Multi-Episode</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         body { background: #111; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; display: flex; justify-content: center; }
         .container { max-width: 500px; width: 100%; }
         .card { background: #1b1b1b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        input, button { width: 100%; padding: 12px; margin-top: 15px; border-radius: 8px; border: none; box-sizing: border-box; }
-        input { background: #2a2a2a; color: #fff; }
-        button { background: #4caf50; color: #fff; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        input[type="text"], button { width: 100%; padding: 12px; margin-top: 15px; border-radius: 8px; border: none; box-sizing: border-box; }
+        input[type="text"] { background: #2a2a2a; color: #fff; }
+        button { background: #4caf50; color: #fff; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
         button:hover { background: #45a049; }
+        
+        .inputs-wrapper { max-height: 280px; overflow-y: auto; margin-top: 15px; padding-right: 5px; }
+        .inputs-wrapper::-webkit-scrollbar { width: 6px; }
+        .inputs-wrapper::-webkit-scrollbar-thumb { background: #4caf50; border-radius: 10px; }
+        .ep-row { background: #2a2a2a; padding: 10px; margin-bottom: 8px; border-radius: 6px; font-size: 0.9em; display: flex; flex-direction: column; }
+        .ep-row input[type="file"] { margin-top: 5px; width: 100%; }
+        .ep-label { font-weight: bold; color: #4caf50; }
+        
         .progress { height: 20px; background: #333; border-radius: 10px; overflow: hidden; margin-top: 20px; }
         .bar { height: 100%; width: 0; background: #4caf50; transition: width 0.3s; }
         #status { text-align: center; margin-top: 10px; font-size: 0.9em; color: #aaa; }
@@ -22,12 +30,13 @@
 
 <div class="container">
     <div class="card">
-        <h2 style="margin-top:0;">Manhwa Merger Pro V2</h2>
+        <h2 style="margin-top:0; text-align: center;">Manhwa Merger Pro V2</h2>
         
-        <input id="zipName" placeholder="ZIP Name (default: chapter)" value="chapter">
-        <input id="imageInput" type="file" multiple accept="image/*">
+        <input id="zipName" type="text" placeholder="ZIP Name" value="">
         
-        <button onclick="startMerge()">Merge Images</button>
+        <div class="inputs-wrapper" id="inputsContainer"></div>
+        
+        <button onclick="startMerge()">Merge Selected Episodes</button>
 
         <div class="progress"><div id="bar" class="bar"></div></div>
         <p id="status">Idle</p>
@@ -38,6 +47,35 @@
     const IMAGES_PER_OUTPUT = 10;
     const CROP_PERCENT = 15.6;
     const WEBP_QUALITY = 0.92;
+    const TOTAL_EPISODES = 10;
+
+    const inputsContainer = document.getElementById("inputsContainer");
+    const zipNameInput = document.getElementById("zipName");
+
+    // Generate 10 input slots
+    for(let i = 0; i < TOTAL_EPISODES; i++) {
+        inputsContainer.innerHTML += `
+            <div class="ep-row">
+                <span class="ep-label" id="label${i}">Episode</span>
+                <input id="imageInput${i}" type="file" multiple accept="image/*">
+            </div>
+        `;
+    }
+
+    // Function to update labels based on the first number found in the ZIP name
+    function updateLabels() {
+        const zipName = zipNameInput.value;
+        const match = zipName.match(/\d+/); // Finds the first number in the text
+        const startEp = match ? parseInt(match[0]) : 1; // Default to 1 if no number found
+
+        for(let i = 0; i < TOTAL_EPISODES; i++) {
+            document.getElementById(`label${i}`).innerText = `Episode ${startEp + i}`;
+        }
+    }
+
+    // Update labels immediately and whenever the user types in the input box
+    updateLabels();
+    zipNameInput.addEventListener('input', updateLabels);
 
     function p(v) { document.getElementById("bar").style.width = v + "%"; }
     function s(v) { document.getElementById("status").textContent = v; }
@@ -53,7 +91,6 @@
 
     async function loadWatermark() {
         try {
-            // Agar watermark.png file folder mein nahi hai, toh yeh gracefully skip ho jayega
             const response = await fetch('./watermark.png');
             if (!response.ok) return null;
             const blob = await response.blob();
@@ -69,70 +106,93 @@
     }
 
     async function startMerge() {
-        const files = [...document.getElementById("imageInput").files]
-            .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        let activeEpisodes = [];
+        let totalBatches = 0;
 
-        if (!files.length) { alert("Please select images first!"); return; }
+        const zipName = zipNameInput.value.trim() || "Merged_Chapters";
+        const match = zipName.match(/\d+/);
+        const startEp = match ? parseInt(match[0]) : 1;
 
-        const zipName = document.getElementById("zipName").value.trim() || "chapter";
-        const zip = new JSZip();
-        const watermark = await loadWatermark();
-
-        let out = 1;
-        let global = 0;
-        const totalBatches = Math.ceil(files.length / IMAGES_PER_OUTPUT);
-
-        for (let i = 0; i < files.length; i += IMAGES_PER_OUTPUT) {
-            const batch = files.slice(i, i + IMAGES_PER_OUTPUT);
-            const images = await Promise.all(batch.map(f => fileToImage(f)));
-
-            let width = Math.max(...images.map(x => x.width));
-            let data = [];
-            let finalHeight = 0;
-
-            images.forEach(img => {
-                let crop = (global === 0) ? 0 : Math.floor(img.height * (CROP_PERCENT / 100));
-                let scale = width / img.width;
-                let drawHeight = Math.floor((img.height - crop) * scale);
-                data.push({ img, crop, drawHeight });
-                finalHeight += drawHeight;
-                global++;
-            });
-
-            const canvas = document.createElement("canvas");
-            canvas.width = width;
-            canvas.height = finalHeight;
-            const ctx = canvas.getContext("2d");
-
-            let y = 0;
-            data.forEach(d => {
-                ctx.drawImage(d.img, 0, d.crop, d.img.width, d.img.height - d.crop, 0, y, width, d.drawHeight);
-                y += d.drawHeight;
-            });
-
-            if (watermark) {
-                const wmWidth = width * 0.40;
-                const wmHeight = watermark.height * (wmWidth / watermark.width);
-                ctx.globalAlpha = 0.50;
-                ctx.drawImage(watermark, width - wmWidth - 20, (finalHeight / 2) - (wmHeight / 2), wmWidth, wmHeight);
-                ctx.drawImage(watermark, width - wmWidth - 20, finalHeight - wmHeight - 20, wmWidth, wmHeight);
-                ctx.globalAlpha = 1.0;
-            }
-
-            const blob = await new Promise(r => canvas.toBlob(r, "image/webp", WEBP_QUALITY));
-            zip.file(String(out).padStart(3, "0") + ".webp", blob);
+        // Sirf unhi inputs ko check karenge jisme files selected hain
+        for(let i = 0; i < TOTAL_EPISODES; i++) {
+            const files = [...document.getElementById(`imageInput${i}`).files]
+                .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
             
-            p(Math.round((out / totalBatches) * 100));
-            s(`Processed batch ${out} of ${totalBatches}`);
-            out++;
+            if (files.length > 0) {
+                let epNumber = startEp + i;
+                activeEpisodes.push({ epNumber: epNumber, files: files });
+                totalBatches += Math.ceil(files.length / IMAGES_PER_OUTPUT);
+            }
         }
 
+        if (activeEpisodes.length === 0) { 
+            alert("Bhai, kam se kam kisi ek episode mein toh images select kar lo!"); 
+            return; 
+        }
+
+        const zip = new JSZip();
+        const watermark = await loadWatermark();
+        let processedBatches = 0;
+
+        for (let ep of activeEpisodes) {
+            let epFolder = zip.folder(`Episode_${ep.epNumber}`);
+            let out = 1;
+            let global = 0;
+
+            for (let i = 0; i < ep.files.length; i += IMAGES_PER_OUTPUT) {
+                const batch = ep.files.slice(i, i + IMAGES_PER_OUTPUT);
+                const images = await Promise.all(batch.map(f => fileToImage(f)));
+
+                let width = Math.max(...images.map(x => x.width));
+                let data = [];
+                let finalHeight = 0;
+
+                images.forEach(img => {
+                    let crop = (global === 0) ? 0 : Math.floor(img.height * (CROP_PERCENT / 100));
+                    let scale = width / img.width;
+                    let drawHeight = Math.floor((img.height - crop) * scale);
+                    data.push({ img, crop, drawHeight });
+                    finalHeight += drawHeight;
+                    global++;
+                });
+
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = finalHeight;
+                const ctx = canvas.getContext("2d");
+
+                let y = 0;
+                data.forEach(d => {
+                    ctx.drawImage(d.img, 0, d.crop, d.img.width, d.img.height - d.crop, 0, y, width, d.drawHeight);
+                    y += d.drawHeight;
+                });
+
+                if (watermark) {
+                    const wmWidth = width * 0.40;
+                    const wmHeight = watermark.height * (wmWidth / watermark.width);
+                    ctx.globalAlpha = 0.50;
+                    ctx.drawImage(watermark, width - wmWidth - 20, (finalHeight / 2) - (wmHeight / 2), wmWidth, wmHeight);
+                    ctx.drawImage(watermark, width - wmWidth - 20, finalHeight - wmHeight - 20, wmWidth, wmHeight);
+                    ctx.globalAlpha = 1.0;
+                }
+
+                const blob = await new Promise(r => canvas.toBlob(r, "image/webp", WEBP_QUALITY));
+                epFolder.file(String(out).padStart(3, "0") + ".webp", blob);
+                
+                processedBatches++;
+                p(Math.round((processedBatches / totalBatches) * 100));
+                s(`Processing Episode ${ep.epNumber} - Batch ${out}...`);
+                out++;
+            }
+        }
+
+        s("Packaging final Master ZIP...");
         const finalZip = await zip.generateAsync({ type: "blob" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(finalZip);
         a.download = zipName + ".zip";
         a.click();
-        s("Finished!");
+        s("Finished! All selected episodes zipped successfully.");
     }
 </script>
 </body>
