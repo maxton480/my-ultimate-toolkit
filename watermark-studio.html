@@ -44,7 +44,7 @@
         h2 { text-align: center; margin-bottom: 25px; font-weight: 700; font-size: 24px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         .form-group { margin-bottom: 20px; }
-        .label-title { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+        .label-title { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); display: flex; justify-content: space-between;}
 
         .file-upload-wrapper { position: relative; width: 100%; }
         .file-upload-input {
@@ -70,6 +70,12 @@
         }
         .mode-card input:checked + .mode-ui { border-color: var(--primary); color: var(--text); background: rgba(99, 102, 241, 0.1); box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
         .mode-icon { font-size: 20px; }
+
+        /* Range Slider Styling */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(99, 102, 241, 0.6); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: var(--border); border-radius: 3px; }
+        input[type=range]:focus { outline: none; }
 
         .custom-input { width: 100%; padding: 14px; background: #0f172a; border: 1px solid var(--border); color: var(--text); border-radius: 12px; font-size: 14px; outline: none; transition: 0.3s; }
         .custom-input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
@@ -105,7 +111,16 @@
         </div>
 
         <div class="form-group">
-            <span class="label-title">2. Placement Mode</span>
+            <span class="label-title">
+                2. Output Quality 
+                <span id="qualityValueText" style="color: #a855f7;">80%</span>
+            </span>
+            <input type="range" id="qualitySlider" min="10" max="100" value="80" oninput="updateQualityText(this.value)">
+            <small style="color: #94a3b8; display: block; margin-top: 5px; font-size: 11px;">Lower quality = Smaller zip size (Recommended: 75% - 85%)</small>
+        </div>
+
+        <div class="form-group">
+            <span class="label-title">3. Placement Mode</span>
             <div class="mode-grid">
                 <label class="mode-card">
                     <input type="radio" name="mode" value="comic" checked>
@@ -125,8 +140,8 @@
         </div>
 
         <div class="form-group">
-            <span class="label-title">3. Output Zip Name</span>
-            <input type="text" id="zipName" class="custom-input" placeholder="e.g. Episode_01" value="Watermarked_Output">
+            <span class="label-title">4. Output Zip Name</span>
+            <input type="text" id="zipName" class="custom-input" placeholder="e.g. Ishq_Par_Jor_Nahi_Ep01" value="Watermarked_Output">
         </div>
 
         <button id="processBtn" class="process-btn" onclick="processImages()">🚀 Apply & Download</button>
@@ -150,6 +165,10 @@
                 textElement.innerHTML = `${icon} ${input.files[0].name}`;
                 textElement.style.color = "#a855f7";
             }
+        }
+
+        function updateQualityText(val) {
+            document.getElementById('qualityValueText').innerText = val + "%";
         }
 
         function loadImage(file) {
@@ -182,6 +201,9 @@
             const baseFiles = document.getElementById('baseImages').files;
             const mode = document.querySelector('input[name="mode"]:checked').value;
             let zipName = document.getElementById('zipName').value.trim() || 'Watermarked_Output';
+            
+            // Slider value mapping: 80% becomes 0.8
+            const qualitySetting = parseInt(document.getElementById('qualitySlider').value) / 100;
             
             const btn = document.getElementById('processBtn');
             const statusText = document.getElementById('statusText');
@@ -220,12 +242,10 @@
                     ctx.globalAlpha = 0.4;
                     const padding = 20;
 
-                    // Dynamic Size calculation based on Mode
                     let wmWidth = wmImg.width;
                     let wmHeight = wmImg.height;
 
                     if (mode === 'comic') {
-                        // Comic Mode mein size ko 50% chhota kar diya gaya hai
                         wmWidth = wmImg.width * 0.5;
                         wmHeight = wmImg.height * 0.5;
                     }
@@ -234,10 +254,8 @@
                     const brY = canvas.height - wmHeight - padding;
 
                     if (mode === 'comic') {
-                        // Mode 1: Bottom Right Only (Smaller Size)
                         ctx.drawImage(wmImg, brX, brY, wmWidth, wmHeight);
                     } else if (mode === 'webtoon') {
-                        // Mode 2: Center Right + Bottom Right (Original Size)
                         const crX = canvas.width - wmWidth - padding;
                         const crY = (canvas.height - wmHeight) / 2;
                         
@@ -247,13 +265,14 @@
 
                     ctx.globalAlpha = 1.0; 
 
-                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.95));
+                    // WebP Conversion with dynamic quality control
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', qualitySetting));
                     const fileName = String(i + 1).padStart(3, '0') + '.webp';
                     zip.file(fileName, blob);
 
                     let percentage = Math.round(((i + 1) / totalFiles) * 100);
                     progressBar.style.width = percentage + "%";
-                    statusText.innerText = `Adding Watermark: ${i + 1} / ${totalFiles}`;
+                    statusText.innerText = `Compressing & Watermarking: ${i + 1} / ${totalFiles}`;
                 }
 
                 statusText.innerText = "📦 Compressing to Zip...";
