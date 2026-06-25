@@ -1,151 +1,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ComicPur Watermark Studio Pro</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Watermarker - Comic & Webtoon</title>
+    <!-- JSZip Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --gradient: linear-gradient(135deg, #6366f1, #a855f7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --radius: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--surface);
+            width: 100%;
+            max-width: 480px;
+            padding: 30px 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        h2 { text-align: center; margin-bottom: 25px; font-weight: 700; font-size: 24px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .form-group { margin-bottom: 20px; }
+        .label-title { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+
+        /* Custom File Upload Styling */
+        .file-upload-wrapper { position: relative; width: 100%; }
+        .file-upload-input {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            opacity: 0; cursor: pointer; z-index: 2;
+        }
+        .file-upload-ui {
+            background: #0f172a; border: 2px dashed var(--border); border-radius: 12px;
+            padding: 20px; text-align: center; transition: 0.3s ease; color: var(--text-muted);
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .file-upload-wrapper:hover .file-upload-ui { border-color: var(--primary); background: #172033; }
+        .upload-icon { font-size: 24px; }
+
+        /* Mode Selection Cards */
+        .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .mode-card { position: relative; cursor: pointer; }
+        .mode-card input { position: absolute; opacity: 0; }
+        .mode-ui {
+            background: #0f172a; border: 2px solid var(--border); border-radius: 12px;
+            padding: 15px 10px; text-align: center; transition: 0.3s;
+            font-size: 13px; font-weight: 600; color: var(--text-muted);
+            display: flex; flex-direction: column; gap: 5px; align-items: center; justify-content: center; height: 100%;
+        }
+        .mode-card input:checked + .mode-ui { border-color: var(--primary); color: var(--text); background: rgba(99, 102, 241, 0.1); box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+        .mode-icon { font-size: 20px; }
+
+        /* Text Input */
+        .custom-input { width: 100%; padding: 14px; background: #0f172a; border: 1px solid var(--border); color: var(--text); border-radius: 12px; font-size: 14px; outline: none; transition: 0.3s; }
+        .custom-input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
+
+        /* Button */
+        .process-btn {
+            width: 100%; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); margin-top: 10px;
+        }
+        .process-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6); }
+        .process-btn:disabled { background: var(--border); color: var(--text-muted); box-shadow: none; cursor: not-allowed; transform: none; }
+
+        /* Status Area */
+        .status-container { margin-top: 20px; text-align: center; font-size: 14px; font-weight: 600; min-height: 20px; }
+        .progress-bar-bg { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; margin-top: 10px; overflow: hidden; display: none; }
+        .progress-bar-fill { height: 100%; background: var(--gradient); width: 0%; transition: width 0.3s ease; }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-white p-6">
-<div class="max-w-4xl mx-auto">
-<div class="bg-slate-900 rounded-3xl p-8 shadow-2xl border border-slate-800">
-<h1 class="text-4xl font-bold mb-2">ComicPur Watermark Studio Pro</h1>
-<p class="text-slate-400 mb-8">Batch watermark + WebP export + custom ZIP naming</p>
+<body>
 
-<div class="space-y-6">
-<div>
-<label class="block mb-2 font-semibold">ZIP Name</label>
-<input id="zipName" value="Chapter 1"
-class="w-full bg-slate-800 rounded-xl p-3 border border-slate-700">
-</div>
+    <div class="container">
+        <h2>✨ Pro Watermarker</h2>
 
-<div>
-<label class="block mb-2 font-semibold">Upload Images</label>
-<input id="wmFiles" type="file" multiple accept="image/*"
-class="w-full bg-slate-800 rounded-xl p-3 border border-slate-700">
-</div>
+        <!-- Step 1: Upload Panels -->
+        <div class="form-group">
+            <span class="label-title">1. Upload Panels (Images)</span>
+            <div class="file-upload-wrapper">
+                <input type="file" id="baseImages" class="file-upload-input" accept="image/*" multiple onchange="updateFileName('baseImages', 'baseText', '📄')">
+                <div class="file-upload-ui">
+                    <span class="upload-icon">🖼️</span>
+                    <span id="baseText">Tap to select Comic/Webtoon pages</span>
+                </div>
+            </div>
+        </div>
 
-<div>
-<div class="flex justify-between mb-2">
-<span>Watermark Opacity</span>
-<span id="opacityDisplay">25%</span>
-</div>
-<input type="range" id="wmOpacity" min="0.05" max="1" step="0.05" value="0.25"
-class="w-full"
-oninput="opacityDisplay.innerText=Math.round(this.value*100)+'%'">
-</div>
+        <!-- Step 2: Upload Watermark -->
+        <div class="form-group">
+            <span class="label-title">2. Upload Watermark (PNG)</span>
+            <div class="file-upload-wrapper">
+                <input type="file" id="watermarkImage" class="file-upload-input" accept="image/*" onchange="updateFileName('watermarkImage', 'wmText', '🛡️')">
+                <div class="file-upload-ui">
+                    <span class="upload-icon">💧</span>
+                    <span id="wmText">Tap to select Watermark</span>
+                </div>
+            </div>
+        </div>
 
-<button onclick="runWatermark()"
-class="w-full bg-indigo-600 hover:bg-indigo-700 transition rounded-xl p-4 font-bold">
-Generate ZIP
-</button>
+        <!-- Step 3: Select Mode -->
+        <div class="form-group">
+            <span class="label-title">3. Placement Mode</span>
+            <div class="mode-grid">
+                <label class="mode-card">
+                    <input type="radio" name="mode" value="comic" checked>
+                    <div class="mode-ui">
+                        <span class="mode-icon">📖</span>
+                        <span>Comic Mode<br><small>(Bottom-Right)</small></span>
+                    </div>
+                </label>
+                <label class="mode-card">
+                    <input type="radio" name="mode" value="webtoon">
+                    <div class="mode-ui">
+                        <span class="mode-icon">📱</span>
+                        <span>Webtoon Mode<br><small>(Center + Bottom)</small></span>
+                    </div>
+                </label>
+            </div>
+        </div>
 
-<div id="status" class="text-center text-slate-400"></div>
-</div>
-</div>
-</div>
+        <!-- Step 4: Zip Name -->
+        <div class="form-group">
+            <span class="label-title">4. Output Zip Name</span>
+            <input type="text" id="zipName" class="custom-input" placeholder="e.g. Episode_01" value="Watermarked_Output">
+        </div>
 
-<canvas id="canvas" style="display:none"></canvas>
+        <!-- Action Button -->
+        <button id="processBtn" class="process-btn" onclick="processImages()">🚀 Apply & Download</button>
+        
+        <!-- Status -->
+        <div class="status-container">
+            <div id="statusText">Ready to process!</div>
+            <div class="progress-bar-bg" id="progressBg">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+        </div>
+    </div>
 
-<script>
-const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
+    <script>
+        // Update UI text when files are selected
+        function updateFileName(inputId, textId, icon) {
+            const input = document.getElementById(inputId);
+            const textElement = document.getElementById(textId);
+            if (input.files.length > 1) {
+                textElement.innerHTML = `${icon} ${input.files.length} files selected`;
+                textElement.style.color = "#a855f7";
+            } else if (input.files.length === 1) {
+                textElement.innerHTML = `${icon} ${input.files[0].name}`;
+                textElement.style.color = "#a855f7";
+            }
+        }
 
-function setStatus(txt){
-document.getElementById('status').innerText=txt;
-}
+        function loadImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
 
-const loadImage=(file)=>new Promise(res=>{
-const img=new Image();
-img.onload=()=>{
-URL.revokeObjectURL(img.src);
-res(img);
-};
-img.src=URL.createObjectURL(file);
-});
+        async function processImages() {
+            const baseFiles = document.getElementById('baseImages').files;
+            const wmFile = document.getElementById('watermarkImage').files[0];
+            const mode = document.querySelector('input[name="mode"]:checked').value;
+            let zipName = document.getElementById('zipName').value.trim() || 'Watermarked_Output';
+            
+            const btn = document.getElementById('processBtn');
+            const statusText = document.getElementById('statusText');
+            const progressBg = document.getElementById('progressBg');
+            const progressBar = document.getElementById('progressBar');
 
-const loadAsset=(src)=>new Promise(res=>{
-const img=new Image();
-img.onload=()=>res(img);
-img.onerror=()=>{
-alert("watermark.png not found in root folder");
-res(null);
-};
-img.src=src;
-});
+            if (baseFiles.length === 0 || !wmFile) {
+                alert("Please select both panels and a watermark image first! 🛑");
+                return;
+            }
 
-async function runWatermark(){
-const files=[...document.getElementById('wmFiles').files]
-.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
+            btn.disabled = true;
+            btn.innerText = "⏳ Processing...";
+            progressBg.style.display = "block";
+            progressBar.style.width = "0%";
+            statusText.style.color = "var(--text)";
 
-if(!files.length){
-alert("Select images first");
-return;
-}
+            try {
+                const wmImg = await loadImage(wmFile);
+                const zip = new JSZip();
+                const totalFiles = baseFiles.length;
 
-const wm=await loadAsset("watermark.png");
-if(!wm)return;
+                for (let i = 0; i < totalFiles; i++) {
+                    const baseImg = await loadImage(baseFiles[i]);
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
 
-const opacity=parseFloat(document.getElementById('wmOpacity').value);
-const zip=new JSZip();
+                    canvas.width = baseImg.width;
+                    canvas.height = baseImg.height;
 
-for(let i=0;i<files.length;i++){
+                    // Draw Base Image
+                    ctx.drawImage(baseImg, 0, 0);
 
-setStatus(`Processing ${i+1}/${files.length}`);
+                    // Apply 40% Opacity
+                    ctx.globalAlpha = 0.4;
+                    const padding = 20;
 
-const img=await loadImage(files[i]);
+                    const brX = canvas.width - wmImg.width - padding;
+                    const brY = canvas.height - wmImg.height - padding;
 
-canvas.width=img.width;
-canvas.height=img.height;
+                    if (mode === 'comic') {
+                        ctx.drawImage(wmImg, brX, brY);
+                    } else if (mode === 'webtoon') {
+                        const crX = canvas.width - wmImg.width - padding;
+                        const crY = (canvas.height - wmImg.height) / 2;
+                        
+                        ctx.drawImage(wmImg, crX, crY); // Center Right
+                        ctx.drawImage(wmImg, brX, brY); // Bottom Right
+                    }
 
-ctx.clearRect(0,0,canvas.width,canvas.height);
-ctx.drawImage(img,0,0);
+                    ctx.globalAlpha = 1.0; // Reset
 
-ctx.globalAlpha=opacity;
+                    // Convert to WebP and add to zip
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.95));
+                    const fileName = String(i + 1).padStart(3, '0') + '.webp';
+                    zip.file(fileName, blob);
 
-const sw=img.width*0.6;
-const sh=wm.height*(sw/wm.width);
+                    // Update UI Progress
+                    let percentage = Math.round(((i + 1) / totalFiles) * 100);
+                    progressBar.style.width = percentage + "%";
+                    statusText.innerText = `Adding Watermark: ${i + 1} / ${totalFiles}`;
+                }
 
-// center
-ctx.drawImage(
-wm,
-(img.width-sw)/2,
-(img.height-sh)/2,
-sw,
-sh
-);
+                statusText.innerText = "📦 Compressing to Zip...";
+                
+                const zipContent = await zip.generateAsync({ type: "blob" });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipContent);
+                link.download = `${zipName}.zip`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-// bottom right
-ctx.drawImage(
-wm,
-img.width-sw-20,
-img.height-sh-20,
-sw,
-sh
-);
+                statusText.innerText = "✅ Download Complete!";
+                statusText.style.color = "#4ade80"; // Green success text
+                setTimeout(() => { progressBg.style.display = "none"; }, 2000);
 
-ctx.globalAlpha=1;
-
-const blob=await new Promise(r=>
-canvas.toBlob(r,'image/webp',0.9)
-);
-
-zip.file(
-`${String(i+1).padStart(3,'0')}.webp`,
-blob
-);
-}
-
-const content=await zip.generateAsync({type:'blob'});
-
-const zipName=document.getElementById('zipName').value.trim() || 'Chapter';
-
-saveAs(content, zipName + '.zip');
-
-setStatus('Done ✅');
-}
-</script>
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "❌ An error occurred processing the images.";
+                statusText.style.color = "#f87171"; // Red error text
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "🚀 Apply & Download";
+            }
+        }
+    </script>
 </body>
 </html>
