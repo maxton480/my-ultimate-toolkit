@@ -3,283 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Watermarker - Comic & Webtoon</title>
-    <!-- JSZip Library -->
+    <title>Manhwa Merger Pro V2 - Smart Multi-Episode</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --gradient: linear-gradient(135deg, #6366f1, #a855f7);
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --radius: 16px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            background-color: var(--surface);
-            width: 100%;
-            max-width: 480px;
-            padding: 30px 20px;
-            border-radius: var(--radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--border);
-        }
-
-        h2 { text-align: center; margin-bottom: 25px; font-weight: 700; font-size: 24px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        .form-group { margin-bottom: 20px; }
-        .label-title { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
-
-        /* Custom File Upload Styling */
-        .file-upload-wrapper { position: relative; width: 100%; }
-        .file-upload-input {
-            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-            opacity: 0; cursor: pointer; z-index: 2;
-        }
-        .file-upload-ui {
-            background: #0f172a; border: 2px dashed var(--border); border-radius: 12px;
-            padding: 20px; text-align: center; transition: 0.3s ease; color: var(--text-muted);
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-        }
-        .file-upload-wrapper:hover .file-upload-ui { border-color: var(--primary); background: #172033; }
-        .upload-icon { font-size: 24px; }
-
-        /* Mode Selection Cards */
-        .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .mode-card { position: relative; cursor: pointer; }
-        .mode-card input { position: absolute; opacity: 0; }
-        .mode-ui {
-            background: #0f172a; border: 2px solid var(--border); border-radius: 12px;
-            padding: 15px 10px; text-align: center; transition: 0.3s;
-            font-size: 13px; font-weight: 600; color: var(--text-muted);
-            display: flex; flex-direction: column; gap: 5px; align-items: center; justify-content: center; height: 100%;
-        }
-        .mode-card input:checked + .mode-ui { border-color: var(--primary); color: var(--text); background: rgba(99, 102, 241, 0.1); box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
-        .mode-icon { font-size: 20px; }
-
-        /* Text Input */
-        .custom-input { width: 100%; padding: 14px; background: #0f172a; border: 1px solid var(--border); color: var(--text); border-radius: 12px; font-size: 14px; outline: none; transition: 0.3s; }
-        .custom-input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
-
-        /* Button */
-        .process-btn {
-            width: 100%; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 12px;
-            font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); margin-top: 10px;
-        }
-        .process-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6); }
-        .process-btn:disabled { background: var(--border); color: var(--text-muted); box-shadow: none; cursor: not-allowed; transform: none; }
-
-        /* Status Area */
-        .status-container { margin-top: 20px; text-align: center; font-size: 14px; font-weight: 600; min-height: 20px; }
-        .progress-bar-bg { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; margin-top: 10px; overflow: hidden; display: none; }
-        .progress-bar-fill { height: 100%; background: var(--gradient); width: 0%; transition: width 0.3s ease; }
+        body { background: #111; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 500px; width: 100%; }
+        .card { background: #1b1b1b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        input[type="text"], button { width: 100%; padding: 12px; margin-top: 15px; border-radius: 8px; border: none; box-sizing: border-box; }
+        input[type="text"] { background: #2a2a2a; color: #fff; }
+        button { background: #4caf50; color: #fff; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
+        button:hover { background: #45a049; }
+        
+        .inputs-wrapper { max-height: 280px; overflow-y: auto; margin-top: 15px; padding-right: 5px; }
+        .inputs-wrapper::-webkit-scrollbar { width: 6px; }
+        .inputs-wrapper::-webkit-scrollbar-thumb { background: #4caf50; border-radius: 10px; }
+        .ep-row { background: #2a2a2a; padding: 10px; margin-bottom: 8px; border-radius: 6px; font-size: 0.9em; display: flex; flex-direction: column; }
+        .ep-row input[type="file"] { margin-top: 5px; width: 100%; }
+        .ep-label { font-weight: bold; color: #4caf50; }
+        
+        .progress { height: 20px; background: #333; border-radius: 10px; overflow: hidden; margin-top: 20px; }
+        .bar { height: 100%; width: 0; background: #4caf50; transition: width 0.3s; }
+        #status { text-align: center; margin-top: 10px; font-size: 0.9em; color: #aaa; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>✨ Pro Watermarker</h2>
-
-        <!-- Step 1: Upload Panels -->
-        <div class="form-group">
-            <span class="label-title">1. Upload Panels (Images)</span>
-            <div class="file-upload-wrapper">
-                <input type="file" id="baseImages" class="file-upload-input" accept="image/*" multiple onchange="updateFileName('baseImages', 'baseText', '📄')">
-                <div class="file-upload-ui">
-                    <span class="upload-icon">🖼️</span>
-                    <span id="baseText">Tap to select Comic/Webtoon pages</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 2: Upload Watermark -->
-        <div class="form-group">
-            <span class="label-title">2. Upload Watermark (PNG)</span>
-            <div class="file-upload-wrapper">
-                <input type="file" id="watermarkImage" class="file-upload-input" accept="image/*" onchange="updateFileName('watermarkImage', 'wmText', '🛡️')">
-                <div class="file-upload-ui">
-                    <span class="upload-icon">💧</span>
-                    <span id="wmText">Tap to select Watermark</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 3: Select Mode -->
-        <div class="form-group">
-            <span class="label-title">3. Placement Mode</span>
-            <div class="mode-grid">
-                <label class="mode-card">
-                    <input type="radio" name="mode" value="comic" checked>
-                    <div class="mode-ui">
-                        <span class="mode-icon">📖</span>
-                        <span>Comic Mode<br><small>(Bottom-Right)</small></span>
-                    </div>
-                </label>
-                <label class="mode-card">
-                    <input type="radio" name="mode" value="webtoon">
-                    <div class="mode-ui">
-                        <span class="mode-icon">📱</span>
-                        <span>Webtoon Mode<br><small>(Center + Bottom)</small></span>
-                    </div>
-                </label>
-            </div>
-        </div>
-
-        <!-- Step 4: Zip Name -->
-        <div class="form-group">
-            <span class="label-title">4. Output Zip Name</span>
-            <input type="text" id="zipName" class="custom-input" placeholder="e.g. Episode_01" value="Watermarked_Output">
-        </div>
-
-        <!-- Action Button -->
-        <button id="processBtn" class="process-btn" onclick="processImages()">🚀 Apply & Download</button>
+<div class="container">
+    <div class="card">
+        <h2 style="margin-top:0; text-align: center;">Manhwa Merger Pro V2</h2>
         
-        <!-- Status -->
-        <div class="status-container">
-            <div id="statusText">Ready to process!</div>
-            <div class="progress-bar-bg" id="progressBg">
-                <div class="progress-bar-fill" id="progressBar"></div>
-            </div>
-        </div>
+        <input id="zipName" type="text" placeholder="ZIP Name" value="">
+        
+        <div class="inputs-wrapper" id="inputsContainer"></div>
+        
+        <button onclick="startMerge()">Merge Selected Episodes</button>
+
+        <div class="progress"><div id="bar" class="bar"></div></div>
+        <p id="status">Idle</p>
     </div>
+</div>
 
-    <script>
-        // Update UI text when files are selected
-        function updateFileName(inputId, textId, icon) {
-            const input = document.getElementById(inputId);
-            const textElement = document.getElementById(textId);
-            if (input.files.length > 1) {
-                textElement.innerHTML = `${icon} ${input.files.length} files selected`;
-                textElement.style.color = "#a855f7";
-            } else if (input.files.length === 1) {
-                textElement.innerHTML = `${icon} ${input.files[0].name}`;
-                textElement.style.color = "#a855f7";
-            }
+<script>
+    const IMAGES_PER_OUTPUT = 10;
+    const CROP_PERCENT = 15.6;
+    const WEBP_QUALITY = 0.92;
+    const TOTAL_EPISODES = 10;
+
+    const inputsContainer = document.getElementById("inputsContainer");
+    const zipNameInput = document.getElementById("zipName");
+
+    // Generate 10 input slots
+    for(let i = 0; i < TOTAL_EPISODES; i++) {
+        inputsContainer.innerHTML += `
+            <div class="ep-row">
+                <span class="ep-label" id="label${i}">Episode</span>
+                <input id="imageInput${i}" type="file" multiple accept="image/*">
+            </div>
+        `;
+    }
+
+    // Function to update labels based on the first number found in the ZIP name
+    function updateLabels() {
+        const zipName = zipNameInput.value;
+        const match = zipName.match(/\d+/); // Finds the first number in the text
+        const startEp = match ? parseInt(match[0]) : 1; // Default to 1 if no number found
+
+        for(let i = 0; i < TOTAL_EPISODES; i++) {
+            document.getElementById(`label${i}`).innerText = `Episode ${startEp + i}`;
         }
+    }
 
-        function loadImage(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => resolve(img);
-                    img.onerror = reject;
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+    // Update labels immediately and whenever the user types in the input box
+    updateLabels();
+    zipNameInput.addEventListener('input', updateLabels);
 
-        async function processImages() {
-            const baseFiles = document.getElementById('baseImages').files;
-            const wmFile = document.getElementById('watermarkImage').files[0];
-            const mode = document.querySelector('input[name="mode"]:checked').value;
-            let zipName = document.getElementById('zipName').value.trim() || 'Watermarked_Output';
+    function p(v) { document.getElementById("bar").style.width = v + "%"; }
+    function s(v) { document.getElementById("status").textContent = v; }
+
+    function loadImage(src) {
+        return new Promise((res, rej) => {
+            const img = new Image();
+            img.onload = () => res(img);
+            img.onerror = rej;
+            img.src = src;
+        });
+    }
+
+    async function loadWatermark() {
+        try {
+            const response = await fetch('./watermark.png');
+            if (!response.ok) return null;
+            const blob = await response.blob();
+            return await loadImage(URL.createObjectURL(blob));
+        } catch(e) { return null; }
+    }
+
+    async function fileToImage(file) {
+        const url = URL.createObjectURL(file);
+        const img = await loadImage(url);
+        URL.revokeObjectURL(url);
+        return img;
+    }
+
+    async function startMerge() {
+        let activeEpisodes = [];
+        let totalBatches = 0;
+
+        const zipName = zipNameInput.value.trim() || "Merged_Chapters";
+        const match = zipName.match(/\d+/);
+        const startEp = match ? parseInt(match[0]) : 1;
+
+        // Sirf unhi inputs ko check karenge jisme files selected hain
+        for(let i = 0; i < TOTAL_EPISODES; i++) {
+            const files = [...document.getElementById(`imageInput${i}`).files]
+                .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
             
-            const btn = document.getElementById('processBtn');
-            const statusText = document.getElementById('statusText');
-            const progressBg = document.getElementById('progressBg');
-            const progressBar = document.getElementById('progressBar');
-
-            if (baseFiles.length === 0 || !wmFile) {
-                alert("Please select both panels and a watermark image first! 🛑");
-                return;
+            if (files.length > 0) {
+                let epNumber = startEp + i;
+                activeEpisodes.push({ epNumber: epNumber, files: files });
+                totalBatches += Math.ceil(files.length / IMAGES_PER_OUTPUT);
             }
+        }
 
-            btn.disabled = true;
-            btn.innerText = "⏳ Processing...";
-            progressBg.style.display = "block";
-            progressBar.style.width = "0%";
-            statusText.style.color = "var(--text)";
+        if (activeEpisodes.length === 0) { 
+            alert("Bhai, kam se kam kisi ek episode mein toh images select kar lo!"); 
+            return; 
+        }
 
-            try {
-                const wmImg = await loadImage(wmFile);
-                const zip = new JSZip();
-                const totalFiles = baseFiles.length;
+        const zip = new JSZip();
+        const watermark = await loadWatermark();
+        let processedBatches = 0;
 
-                for (let i = 0; i < totalFiles; i++) {
-                    const baseImg = await loadImage(baseFiles[i]);
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+        for (let ep of activeEpisodes) {
+            let epFolder = zip.folder(`Episode_${ep.epNumber}`);
+            let out = 1;
+            let global = 0;
 
-                    canvas.width = baseImg.width;
-                    canvas.height = baseImg.height;
+            for (let i = 0; i < ep.files.length; i += IMAGES_PER_OUTPUT) {
+                const batch = ep.files.slice(i, i + IMAGES_PER_OUTPUT);
+                const images = await Promise.all(batch.map(f => fileToImage(f)));
 
-                    // Draw Base Image
-                    ctx.drawImage(baseImg, 0, 0);
+                let width = Math.max(...images.map(x => x.width));
+                let data = [];
+                let finalHeight = 0;
 
-                    // Apply 40% Opacity
-                    ctx.globalAlpha = 0.4;
-                    const padding = 20;
+                images.forEach(img => {
+                    let crop = (global === 0) ? 0 : Math.floor(img.height * (CROP_PERCENT / 100));
+                    let scale = width / img.width;
+                    let drawHeight = Math.floor((img.height - crop) * scale);
+                    data.push({ img, crop, drawHeight });
+                    finalHeight += drawHeight;
+                    global++;
+                });
 
-                    const brX = canvas.width - wmImg.width - padding;
-                    const brY = canvas.height - wmImg.height - padding;
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = finalHeight;
+                const ctx = canvas.getContext("2d");
 
-                    if (mode === 'comic') {
-                        ctx.drawImage(wmImg, brX, brY);
-                    } else if (mode === 'webtoon') {
-                        const crX = canvas.width - wmImg.width - padding;
-                        const crY = (canvas.height - wmImg.height) / 2;
-                        
-                        ctx.drawImage(wmImg, crX, crY); // Center Right
-                        ctx.drawImage(wmImg, brX, brY); // Bottom Right
-                    }
+                let y = 0;
+                data.forEach(d => {
+                    ctx.drawImage(d.img, 0, d.crop, d.img.width, d.img.height - d.crop, 0, y, width, d.drawHeight);
+                    y += d.drawHeight;
+                });
 
-                    ctx.globalAlpha = 1.0; // Reset
-
-                    // Convert to WebP and add to zip
-                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.95));
-                    const fileName = String(i + 1).padStart(3, '0') + '.webp';
-                    zip.file(fileName, blob);
-
-                    // Update UI Progress
-                    let percentage = Math.round(((i + 1) / totalFiles) * 100);
-                    progressBar.style.width = percentage + "%";
-                    statusText.innerText = `Adding Watermark: ${i + 1} / ${totalFiles}`;
+                if (watermark) {
+                    const wmWidth = width * 0.40;
+                    const wmHeight = watermark.height * (wmWidth / watermark.width);
+                    ctx.globalAlpha = 0.50;
+                    ctx.drawImage(watermark, width - wmWidth - 20, (finalHeight / 2) - (wmHeight / 2), wmWidth, wmHeight);
+                    ctx.drawImage(watermark, width - wmWidth - 20, finalHeight - wmHeight - 20, wmWidth, wmHeight);
+                    ctx.globalAlpha = 1.0;
                 }
 
-                statusText.innerText = "📦 Compressing to Zip...";
+                const blob = await new Promise(r => canvas.toBlob(r, "image/webp", WEBP_QUALITY));
+                epFolder.file(String(out).padStart(3, "0") + ".webp", blob);
                 
-                const zipContent = await zip.generateAsync({ type: "blob" });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(zipContent);
-                link.download = `${zipName}.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                statusText.innerText = "✅ Download Complete!";
-                statusText.style.color = "#4ade80"; // Green success text
-                setTimeout(() => { progressBg.style.display = "none"; }, 2000);
-
-            } catch (error) {
-                console.error(error);
-                statusText.innerText = "❌ An error occurred processing the images.";
-                statusText.style.color = "#f87171"; // Red error text
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "🚀 Apply & Download";
+                processedBatches++;
+                p(Math.round((processedBatches / totalBatches) * 100));
+                s(`Processing Episode ${ep.epNumber} - Batch ${out}...`);
+                out++;
             }
         }
-    </script>
+
+        s("Packaging final Master ZIP...");
+        const finalZip = await zip.generateAsync({ type: "blob" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(finalZip);
+        a.download = zipName + ".zip";
+        a.click();
+        s("Finished! All selected episodes zipped successfully.");
+    }
+</script>
 </body>
 </html>
