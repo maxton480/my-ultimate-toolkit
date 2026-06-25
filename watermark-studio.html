@@ -111,14 +111,14 @@
                     <input type="radio" name="mode" value="comic" checked>
                     <div class="mode-ui">
                         <span class="mode-icon">📖</span>
-                        <span>Comic Mode<br><small>(Bottom-Right)</small></span>
+                        <span>Comic Mode<br><small>(Auto Resized: Small)</small></span>
                     </div>
                 </label>
                 <label class="mode-card">
                     <input type="radio" name="mode" value="webtoon">
                     <div class="mode-ui">
                         <span class="mode-icon">📱</span>
-                        <span>Webtoon Mode<br><small>(Center + Bottom)</small></span>
+                        <span>Webtoon Mode<br><small>(Original Size)</small></span>
                     </div>
                 </label>
             </div>
@@ -165,11 +165,10 @@
             });
         }
 
-        // Naya function: Auto-load watermark.png from the root directory
         function loadDefaultWatermark() {
             return new Promise((resolve, reject) => {
                 const img = new Image();
-                img.crossOrigin = "anonymous"; // Helps avoid canvas tainting issues if hosted
+                img.crossOrigin = "anonymous"; 
                 img.onload = () => resolve(img);
                 img.onerror = () => {
                     alert("❌ 'watermark.png' nahi mili! Please make sure file ka exact naam yahi hai aur woh isi folder mein hai.");
@@ -221,17 +220,29 @@
                     ctx.globalAlpha = 0.4;
                     const padding = 20;
 
-                    const brX = canvas.width - wmImg.width - padding;
-                    const brY = canvas.height - wmImg.height - padding;
+                    // Dynamic Size calculation based on Mode
+                    let wmWidth = wmImg.width;
+                    let wmHeight = wmImg.height;
 
                     if (mode === 'comic') {
-                        ctx.drawImage(wmImg, brX, brY);
+                        // Comic Mode mein size ko 50% chhota kar diya gaya hai
+                        wmWidth = wmImg.width * 0.5;
+                        wmHeight = wmImg.height * 0.5;
+                    }
+
+                    const brX = canvas.width - wmWidth - padding;
+                    const brY = canvas.height - wmHeight - padding;
+
+                    if (mode === 'comic') {
+                        // Mode 1: Bottom Right Only (Smaller Size)
+                        ctx.drawImage(wmImg, brX, brY, wmWidth, wmHeight);
                     } else if (mode === 'webtoon') {
-                        const crX = canvas.width - wmImg.width - padding;
-                        const crY = (canvas.height - wmImg.height) / 2;
+                        // Mode 2: Center Right + Bottom Right (Original Size)
+                        const crX = canvas.width - wmWidth - padding;
+                        const crY = (canvas.height - wmHeight) / 2;
                         
-                        ctx.drawImage(wmImg, crX, crY); 
-                        ctx.drawImage(wmImg, brX, brY); 
+                        ctx.drawImage(wmImg, crX, crY, wmWidth, wmHeight); 
+                        ctx.drawImage(wmImg, brX, brY, wmWidth, wmHeight); 
                     }
 
                     ctx.globalAlpha = 1.0; 
