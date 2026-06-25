@@ -1,152 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaToolkit Pro | Watermark Studio</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .sidebar { background-color: #0f172a; min-height: 100vh; }
-        .nav-item { transition: all 0.2s ease; color: #94a3b8; border-left: 4px solid transparent; display: block; }
-        .nav-item:hover { background-color: #1e293b; color: #f8fafc; }
-        .nav-item.active { background-color: #1e293b; color: #6366f1; border-left: 4px solid #6366f1; font-weight: 600; }
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 2rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .btn-action { background: #4f46e5; color: white; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: background 0.2s; width: 100%; }
-        .btn-action:hover { background: #4338ca; }
-        input[type="file"]::file-selector-button { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 0.5rem; color: #475569; font-weight: 600; cursor: pointer; margin-right: 1rem; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComicPur Watermark Studio Pro</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
-<body class="flex flex-col md:flex-row">
+<body class="min-h-screen bg-slate-950 text-white p-6">
+<div class="max-w-4xl mx-auto">
+<div class="bg-slate-900 rounded-3xl p-8 shadow-2xl border border-slate-800">
+<h1 class="text-4xl font-bold mb-2">ComicPur Watermark Studio Pro</h1>
+<p class="text-slate-400 mb-8">Batch watermark + WebP export + custom ZIP naming</p>
 
-    <aside class="sidebar w-full md:w-64 flex flex-col shadow-xl">
-        <div class="p-8 border-b border-slate-800">
-            <h1 class="text-xl font-bold text-white tracking-tight">Toolkit <span class="text-indigo-500">Pro</span></h1>
-            <p class="text-slate-500 text-[10px] uppercase tracking-widest mt-1 font-bold">Multi-Page Architecture</p>
-        </div>
-        <nav class="flex-1 py-4">
-            <a href="index.html" class="nav-item px-8 py-4 text-sm">Dashboard Home</a>
-            <a href="comic-merger.html" class="nav-item px-8 py-4 text-sm">Comic Merger</a>
-            <a href="smart-combiner.html" class="nav-item px-8 py-4 text-sm">Smart Combiner</a>
-            <a href="frame-extractor.html" class="nav-item px-8 py-4 text-sm">Frame Extractor</a>
-            <a href="image-splitter.html" class="nav-item px-8 py-4 text-sm">Image Splitter</a>
-            <a href="watermark-studio.html" class="nav-item active px-8 py-4 text-sm">Watermark Studio</a>
-        </nav>
-        <div class="p-4 bg-slate-900/50 border-t border-slate-800 text-[10px] text-slate-500 text-center uppercase tracking-widest">
-            Single Repo System
-        </div>
-    </aside>
+<div class="space-y-6">
+<div>
+<label class="block mb-2 font-semibold">ZIP Name</label>
+<input id="zipName" value="Chapter 1"
+class="w-full bg-slate-800 rounded-xl p-3 border border-slate-700">
+</div>
 
-    <main class="flex-1 bg-slate-50 p-6 md:p-12 overflow-y-auto">
-        <div id="status" class="hidden fixed top-0 left-0 right-0 bg-indigo-600 text-white text-center py-2 text-xs font-bold z-50 tracking-wider">SORTING & BRANDING ASSETS...</div>
-        
-        <div class="max-w-4xl mx-auto">
-            <div class="mb-10">
-                <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Watermark Studio Pro</h2>
-                <p class="text-slate-500 mt-2 text-sm leading-relaxed">
-                    Batch processes images with protective branding layouts. Automatically scales and positions layers using an alphanumeric sorting sequence, allowing granular transparency control.
-                </p>
-            </div>
-            
-            <div class="card space-y-6">
-                <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-500 italic">
-                    Pipeline Status: Sorting engine operational. Render target format: WebP blocks. Required asset: 'watermark.png' must sit inside the repository root folder.
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Upload Source Images</label>
-                    <input type="file" id="wmFiles" multiple accept="image/*" class="w-full text-sm text-slate-500">
-                </div>
-                
-                <div class="space-y-2">
-                    <div class="flex justify-between text-xs font-bold uppercase text-slate-400">
-                        <span>Watermark Transparency Slider</span>
-                        <span id="opacityDisplay" class="text-indigo-600 font-bold">50%</span>
-                    </div>
-                    <input type="range" id="wmOpacity" min="0.1" max="1" step="0.1" value="0.5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('opacityDisplay').innerText = Math.round(this.value * 100) + '%'">
-                </div>
-                
-                <button onclick="runWatermark()" class="btn-action">Apply Protective Layer</button>
-            </div>
-        </div>
-    </main>
+<div>
+<label class="block mb-2 font-semibold">Upload Images</label>
+<input id="wmFiles" type="file" multiple accept="image/*"
+class="w-full bg-slate-800 rounded-xl p-3 border border-slate-700">
+</div>
 
-    <canvas id="masterCanvas" class="hidden"></canvas>
+<div>
+<div class="flex justify-between mb-2">
+<span>Watermark Opacity</span>
+<span id="opacityDisplay">25%</span>
+</div>
+<input type="range" id="wmOpacity" min="0.05" max="1" step="0.05" value="0.25"
+class="w-full"
+oninput="opacityDisplay.innerText=Math.round(this.value*100)+'%'">
+</div>
 
-    <script>
-        const status = document.getElementById('status');
-        const canvas = document.getElementById('masterCanvas');
-        const ctx = canvas.getContext('2d');
+<button onclick="runWatermark()"
+class="w-full bg-indigo-600 hover:bg-indigo-700 transition rounded-xl p-4 font-bold">
+Generate ZIP
+</button>
 
-        function notify(text, show = true) {
-            status.innerText = text;
-            status.classList.toggle('hidden', !show);
-        }
+<div id="status" class="text-center text-slate-400"></div>
+</div>
+</div>
+</div>
 
-        const loadImage = (file) => new Promise(res => {
-            const img = new Image();
-            img.onload = () => { URL.revokeObjectURL(img.src); res(img); };
-            img.src = URL.createObjectURL(file);
-        });
+<canvas id="canvas" style="display:none"></canvas>
 
-        const loadAsset = (path) => new Promise(res => {
-            const img = new Image();
-            img.onload = () => res(img);
-            img.onerror = () => { alert("Error: 'watermark.png' missing from directory root."); res(null); };
-            img.src = path;
-        });
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
 
-        async function runWatermark() {
-            // Step 1: Strict Alphanumeric Name Sorting Sequence
-            const files = [...document.getElementById('wmFiles').files].sort((a, b) => {
-                return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
-            });
-            
-            const op = document.getElementById('wmOpacity').value;
-            const wm = await loadAsset("watermark.png");
-            
-            if (!files.length) return alert("Select target files to apply watermark layer.");
-            if (!wm) return;
+function setStatus(txt){
+document.getElementById('status').innerText=txt;
+}
 
-            notify("APPLYING LAYERED BRANDING PIXEL MAPS...");
-            const zip = new JSZip();
+const loadImage=(file)=>new Promise(res=>{
+const img=new Image();
+img.onload=()=>{
+URL.revokeObjectURL(img.src);
+res(img);
+};
+img.src=URL.createObjectURL(file);
+});
 
-            for (let i = 0; i < files.length; i++) {
-                const img = await loadImage(files[i]);
-                
-                canvas.width = img.width; 
-                canvas.height = img.height;
-                
-                // Render initial source image onto processing canvas
-                ctx.drawImage(img, 0, 0); 
-                
-                // Bind specific alpha constraints to composite canvas state
-                ctx.globalAlpha = op;
-                
-                const sw = img.width * 0.3; 
-                const sh = wm.height * (sw / wm.width);
-                
-                // Draw watermark layer at bottom right alignment track coordinates
-                ctx.drawImage(wm, img.width - sw - 20, img.height - sh - 20, sw, sh);
-                
-                // Flush alpha filters to ensure subsequent steps remain pristine
-                ctx.globalAlpha = 1.0;
-                
-                // Convert mapping outputs directly into WebP streams with strict incremental padding titles
-                const blob = await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9));
-                const fileName = `${String(i + 1).padStart(3, '0')}.webp`;
-                zip.file(fileName, blob);
-                
-                notify(`PROCESSING RECORD BOUNDS: ${i + 1}/${files.length}`);
-            }
-            
-            const content = await zip.generateAsync({type:'blob'});
-            saveAs(content, "branded_assets_package.zip");
-            notify("", false);
-        }
-    </script>
+const loadAsset=(src)=>new Promise(res=>{
+const img=new Image();
+img.onload=()=>res(img);
+img.onerror=()=>{
+alert("watermark.png not found in root folder");
+res(null);
+};
+img.src=src;
+});
+
+async function runWatermark(){
+const files=[...document.getElementById('wmFiles').files]
+.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
+
+if(!files.length){
+alert("Select images first");
+return;
+}
+
+const wm=await loadAsset("watermark.png");
+if(!wm)return;
+
+const opacity=parseFloat(document.getElementById('wmOpacity').value);
+const zip=new JSZip();
+
+for(let i=0;i<files.length;i++){
+
+setStatus(`Processing ${i+1}/${files.length}`);
+
+const img=await loadImage(files[i]);
+
+canvas.width=img.width;
+canvas.height=img.height;
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.drawImage(img,0,0);
+
+ctx.globalAlpha=opacity;
+
+const sw=img.width*0.6;
+const sh=wm.height*(sw/wm.width);
+
+// center
+ctx.drawImage(
+wm,
+(img.width-sw)/2,
+(img.height-sh)/2,
+sw,
+sh
+);
+
+// bottom right
+ctx.drawImage(
+wm,
+img.width-sw-20,
+img.height-sh-20,
+sw,
+sh
+);
+
+ctx.globalAlpha=1;
+
+const blob=await new Promise(r=>
+canvas.toBlob(r,'image/webp',0.9)
+);
+
+zip.file(
+`${String(i+1).padStart(3,'0')}.webp`,
+blob
+);
+}
+
+const content=await zip.generateAsync({type:'blob'});
+
+const zipName=document.getElementById('zipName').value.trim() || 'Chapter';
+
+saveAs(content, zipName + '.zip');
+
+setStatus('Done ✅');
+}
+</script>
 </body>
 </html>
