@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manhwa Merger Pro V3 - Premium Custom Resizer</title>
+    <title>Manhwa Merger Pro V3.1 - With Auto-Watermark</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
@@ -60,6 +60,15 @@
             font-weight: bold;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .watermark-badge {
+            font-size: 10px;
+            background: #2e2e38;
+            padding: 2px 8px;
+            border-radius: 10px;
+            color: #4caf50;
         }
         .settings-grid {
             display: grid;
@@ -172,15 +181,27 @@
             font-size: 13px; 
             color: var(--text-muted); 
         }
+        .note {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 5px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card">
-            <h2>Manhwa Merger Pro V3</h2>
+            <h2>Manhwa Merger Pro V3.1</h2>
             <p class="subtitle">Smart Auto-Resizer & Manual Joint Tuner</p>
             
-            <div class="section-title">1. Resolution & Crop Settings</div>
+            <div class="section-title">
+                1. Resolution & Crop Settings
+                <span class="watermark-badge">✓ Auto-Watermark Enabled</span>
+            </div>
+            
+            <p class="note" style="margin-top: -10px; margin-bottom: 15px; text-align: center;">(Place 'watermark.png' in the same folder as this HTML file)</p>
+
             <div class="settings-grid">
                 <div class="input-group full-width">
                     <label for="zipName">Project / ZIP Name</label>
@@ -228,7 +249,7 @@
 
     <script>
         const TOTAL_EPISODES = 10;
-        const IMAGES_PER_OUTPUT = 10; // Splitting into batches of 10 for standard limits
+        const IMAGES_PER_OUTPUT = 10; // Splitting into batches of 10
 
         const inputsContainer = document.getElementById("inputsContainer");
         const zipNameInput = document.getElementById("zipName");
@@ -247,7 +268,6 @@
             `;
         }
 
-        // Auto adjusts crop pixels dynamically based on width choice to save time
         function autoAdjustCrop() {
             let width = getSelectedWidth();
             if (targetWidthSelect.value === "custom") {
@@ -257,11 +277,10 @@
             }
 
             if (width === 720) {
-                cropPixelsInput.value = "365"; // Calculated 2/3rd of 493px
+                cropPixelsInput.value = "365"; 
             } else if (width === 1080) {
-                cropPixelsInput.value = "493"; // Original manual value
+                cropPixelsInput.value = "493"; 
             } else {
-                // Approximate scale ratio for custom widths based on 1080p profile
                 let scale = width / 1080;
                 cropPixelsInput.value = Math.round(493 * scale);
             }
@@ -288,10 +307,7 @@
         updateLabels();
 
         function p(v) { document.getElementById("bar").style.width = v + "%"; }
-        
-        function s(v) { 
-            document.getElementById("status").textContent = v; 
-        }
+        function s(v) { document.getElementById("status").textContent = v; }
 
         function loadImage(src) {
             return new Promise((res, rej) => {
@@ -300,6 +316,19 @@
                 img.onerror = rej;
                 img.src = src;
             });
+        }
+
+        // New Watermark Loader Function
+        async function loadWatermark() {
+            try {
+                const response = await fetch('./watermark.png');
+                if (!response.ok) return null;
+                const blob = await response.blob();
+                return await loadImage(URL.createObjectURL(blob));
+            } catch(e) { 
+                console.log("Watermark not found, skipping...");
+                return null; 
+            }
         }
 
         async function fileToImage(file) {
@@ -339,12 +368,17 @@
 
             document.getElementById("progressContainer").style.display = "block";
             const zip = new JSZip();
+            
+            // Load watermark before processing
+            s("Checking for watermark...");
+            const watermark = await loadWatermark();
+            
             let processedBatches = 0;
 
             for (let ep of activeEpisodes) {
                 let epFolder = zip.folder(`Episode_${ep.epNumber}`);
                 let out = 1;
-                let global = 0; // Tracks position inside the current episode strip
+                let global = 0; 
 
                 for (let i = 0; i < ep.files.length; i += IMAGES_PER_OUTPUT) {
                     const batch = ep.files.slice(i, i + IMAGES_PER_OUTPUT);
@@ -357,7 +391,6 @@
                         let scale = targetWidth / img.width;
                         let originalDrawnHeight = Math.floor(img.height * scale);
                         
-                        // First image of the whole chapter/episode won't crop from top
                         let currentCrop = (global === 0) ? 0 : cropValue;
                         let finalDrawnHeight = originalDrawnHeight - currentCrop;
                         
@@ -373,7 +406,6 @@
 
                     let y = 0;
                     data.forEach(d => {
-                        // Calculate crop on source image boundaries to maintain exact precision
                         let scale = targetWidth / d.img.width;
                         let originalCropOffset = Math.floor(d.currentCrop / scale);
                         let originalCropHeight = d.img.height - originalCropOffset;
@@ -385,6 +417,22 @@
                         );
                         y += d.finalDrawnHeight;
                     });
+
+                    // --- WATERMARK APPLICATION LOGIC ---
+                    if (watermark) {
+                        // Dynamically scale watermark based on output width
+                        const wmWidth = targetWidth * 0.40; // 40% of the canvas width
+                        const wmHeight = watermark.height * (wmWidth / watermark.width);
+                        
+                        ctx.globalAlpha = 0.50; // 50% transparency
+                        
+                        // Draw at Center-Right
+                        ctx.drawImage(watermark, targetWidth - wmWidth - 20, (finalHeight / 2) - (wmHeight / 2), wmWidth, wmHeight);
+                        // Draw at Bottom-Right
+                        ctx.drawImage(watermark, targetWidth - wmWidth - 20, finalHeight - wmHeight - 20, wmWidth, wmHeight);
+                        
+                        ctx.globalAlpha = 1.0; // Reset transparency
+                    }
 
                     const blob = await new Promise(r => canvas.toBlob(r, "image/webp", qualityValue));
                     epFolder.file(String(out).padStart(3, "0") + ".webp", blob);
