@@ -215,7 +215,7 @@
             <div class="settings-grid">
                 <div class="input-group full-width">
                     <label for="zipName">Project / ZIP Name</label>
-                    <input id="zipName" type="text" placeholder="e.g. Ishq_Par_Jor_Nahi_81-85" value="Ishq_Par_Jor_Nahi_81">
+                    <input id="zipName" type="text" placeholder="e.g. Ishq_Par_Jor_Nahi_81-8" value="">
                 </div>
                 
                 <div class="input-group">
@@ -415,8 +415,8 @@
             let processedBatches = 0;
 
             for (let ep of activeEpisodes) {
-                // Changed from Episode_X to epX
-                let epFolder = zip.folder(`ep${ep.epNumber}`);
+                // Changed from epX to chX
+                let epFolder = zip.folder(`ch${ep.epNumber}`);
                 let out = 1;
                 let global = 0; 
 
@@ -486,7 +486,7 @@
             a.href = URL.createObjectURL(finalZip);
             a.download = zipName + ".zip";
             a.click();
-            s("Finished! High quality resized & aligned episodes zipped successfully.");
+            s("Finished! High quality resized & aligned chapters zipped successfully.");
         }
     </script>
 </body>
