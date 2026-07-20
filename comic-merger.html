@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manhwa Merger Pro V3.1 - With Auto-Watermark</title>
+    <title>Manhwa Merger Pro V3.1 - With Auto-Watermark & Folder Select</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
@@ -145,17 +145,13 @@
             border-radius: 8px; 
             font-size: 14px; 
             display: flex; 
-            flex-direction: column; 
+            flex-direction: row; 
+            justify-content: space-between;
+            align-items: center;
             border: 1px solid transparent;
         }
         .ep-row:focus-within {
             border-color: var(--border-color);
-        }
-        .ep-row input[type="file"] { 
-            margin-top: 8px; 
-            width: 100%; 
-            color: var(--text-muted);
-            font-size: 12px;
         }
         .ep-label { 
             font-weight: bold; 
@@ -187,6 +183,20 @@
             margin-top: 5px;
             font-style: italic;
         }
+        .folder-btn-wrapper {
+            background: var(--input-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 15px;
+        }
+        .folder-btn-wrapper:hover {
+            border-color: var(--accent-color);
+            background: #25252b;
+        }
     </style>
 </head>
 <body>
@@ -205,7 +215,7 @@
             <div class="settings-grid">
                 <div class="input-group full-width">
                     <label for="zipName">Project / ZIP Name</label>
-                    <input id="zipName" type="text" placeholder="e.g. Ishq_Par_Jor_Nahi_Ch1" value="Ishq_Par_Jor_Nahi_Ch1">
+                    <input id="zipName" type="text" placeholder="e.g. Ishq_Par_Jor_Nahi_81-85" value="Ishq_Par_Jor_Nahi_81">
                 </div>
                 
                 <div class="input-group">
@@ -237,10 +247,19 @@
                 </div>
             </div>
 
-            <div class="section-title">2. Upload Episodes</div>
-            <div class="inputs-wrapper" id="inputsContainer"></div>
+            <div class="section-title">2. Select Main Folder</div>
             
-            <button onclick="startMerge()">Resize & Merge Chapters</button>
+            <div class="folder-btn-wrapper" onclick="document.getElementById('folderInput').click()">
+                <span class="ep-label" style="font-size: 16px;">📁 Click to Select Main Folder</span><br>
+                <span class="note">Select the folder that contains your chapter subfolders (1, 2, 3...)</span>
+                <input id="folderInput" type="file" webkitdirectory directory multiple style="display: none;" onchange="handleFolderSelect(this)">
+            </div>
+
+            <div class="inputs-wrapper" id="inputsContainer">
+                <div style="text-align: center; color: var(--text-muted); font-size: 13px;">No folder selected yet.</div>
+            </div>
+            
+            <button id="mergeBtn" onclick="startMerge()" disabled style="opacity: 0.5; cursor: not-allowed;">Resize & Merge Chapters</button>
             
             <div id="progressContainer" class="progress"><div id="bar" class="bar"></div></div>
             <p id="status">Ready to process</p>
@@ -248,8 +267,8 @@
     </div>
 
     <script>
-        const TOTAL_EPISODES = 10;
         const IMAGES_PER_OUTPUT = 10; // Splitting into batches of 10
+        let chaptersData = []; // Store the parsed folders and files
 
         const inputsContainer = document.getElementById("inputsContainer");
         const zipNameInput = document.getElementById("zipName");
@@ -257,16 +276,7 @@
         const customWidthGroup = document.getElementById("customWidthGroup");
         const customWidthInput = document.getElementById("customWidthInput");
         const cropPixelsInput = document.getElementById("cropPixels");
-
-        // Generate input slots dynamically
-        for(let i = 0; i < TOTAL_EPISODES; i++) {
-            inputsContainer.innerHTML += `
-                <div class="ep-row">
-                    <span class="ep-label" id="label${i}">Episode</span>
-                    <input id="imageInput${i}" type="file" multiple accept="image/*">
-                </div>
-            `;
-        }
+        const mergeBtn = document.getElementById("mergeBtn");
 
         function autoAdjustCrop() {
             let width = getSelectedWidth();
@@ -293,21 +303,55 @@
             return parseInt(targetWidthSelect.value);
         }
 
-        function updateLabels() {
-            const zipName = zipNameInput.value;
-            const match = zipName.match(/\d+/);
-            const startEp = match ? parseInt(match[0]) : 1;
-
-            for(let i = 0; i < TOTAL_EPISODES; i++) {
-                document.getElementById(`label${i}`).innerText = `Episode ${startEp + i}`;
-            }
-        }
-
-        zipNameInput.addEventListener('input', updateLabels);
-        updateLabels();
-
         function p(v) { document.getElementById("bar").style.width = v + "%"; }
         function s(v) { document.getElementById("status").textContent = v; }
+
+        // Advanced Folder Parser
+        function handleFolderSelect(input) {
+            const files = Array.from(input.files);
+            const folderGroups = {};
+
+            files.forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                
+                // Read subfolder name (e.g., "MainFolder/1/IMG1.jpg" -> "1")
+                const parts = file.webkitRelativePath.split('/');
+                if (parts.length >= 3) {
+                    const subFolder = parts[1];
+                    if (!folderGroups[subFolder]) folderGroups[subFolder] = [];
+                    folderGroups[subFolder].push(file);
+                }
+            });
+
+            // Sort folders naturally (1, 2, 3, 10...)
+            const sortedFolders = Object.keys(folderGroups).sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+            chaptersData = [];
+            inputsContainer.innerHTML = '';
+
+            sortedFolders.forEach((folderName) => {
+                // Sort files inside folder naturally (IMG1, IMG2, IMG10...)
+                let epFiles = folderGroups[folderName].sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+                chaptersData.push({ originalName: folderName, files: epFiles });
+                
+                inputsContainer.innerHTML += `
+                    <div class="ep-row">
+                        <span class="ep-label">Folder: ${folderName}</span>
+                        <span style="font-size: 12px; color: var(--text-muted);">${epFiles.length} images</span>
+                    </div>
+                `;
+            });
+
+            if (chaptersData.length > 0) {
+                mergeBtn.disabled = false;
+                mergeBtn.style.opacity = "1";
+                mergeBtn.style.cursor = "pointer";
+                s(`Loaded ${chaptersData.length} folders successfully.`);
+            } else {
+                mergeBtn.disabled = true;
+                mergeBtn.style.opacity = "0.5";
+                inputsContainer.innerHTML = `<div style="text-align: center; color: var(--danger-color); font-size: 13px;">No images found in subfolders.</div>`;
+            }
+        }
 
         function loadImage(src) {
             return new Promise((res, rej) => {
@@ -318,7 +362,6 @@
             });
         }
 
-        // New Watermark Loader Function
         async function loadWatermark() {
             try {
                 const response = await fetch('./watermark.png');
@@ -339,44 +382,41 @@
         }
 
         async function startMerge() {
+            if (chaptersData.length === 0) { 
+                alert("Bhai, pehle ek folder select karo jismein subfolders ho!"); 
+                return; 
+            }
+
             let activeEpisodes = [];
             let totalBatches = 0;
 
             const zipName = zipNameInput.value.trim() || "Merged_Chapters";
             const match = zipName.match(/\d+/);
-            const startEp = match ? parseInt(match[0]) : 1;
+            const startEp = match ? parseInt(match[0]) : 1; // Extracts starting chapter from ZIP name
             
             const targetWidth = getSelectedWidth();
             const cropValue = parseInt(cropPixelsInput.value) || 0;
             const qualityValue = parseFloat(document.getElementById("imgQuality").value);
 
-            for(let i = 0; i < TOTAL_EPISODES; i++) {
-                const files = [...document.getElementById(`imageInput${i}`).files]
-                    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-                
-                if (files.length > 0) {
-                    let epNumber = startEp + i;
-                    activeEpisodes.push({ epNumber: epNumber, files: files });
-                    totalBatches += Math.ceil(files.length / IMAGES_PER_OUTPUT);
-                }
-            }
-
-            if (activeEpisodes.length === 0) { 
-                alert("Bhai, kam se kam kisi ek episode mein images select karo!"); 
-                return; 
+            // Prepare batches based on parsed folders
+            for(let i = 0; i < chaptersData.length; i++) {
+                let files = chaptersData[i].files;
+                let epNumber = startEp + i;
+                activeEpisodes.push({ epNumber: epNumber, files: files });
+                totalBatches += Math.ceil(files.length / IMAGES_PER_OUTPUT);
             }
 
             document.getElementById("progressContainer").style.display = "block";
             const zip = new JSZip();
             
-            // Load watermark before processing
             s("Checking for watermark...");
             const watermark = await loadWatermark();
             
             let processedBatches = 0;
 
             for (let ep of activeEpisodes) {
-                let epFolder = zip.folder(`Episode_${ep.epNumber}`);
+                // Changed from Episode_X to epX
+                let epFolder = zip.folder(`ep${ep.epNumber}`);
                 let out = 1;
                 let global = 0; 
 
@@ -418,20 +458,16 @@
                         y += d.finalDrawnHeight;
                     });
 
-                    // --- WATERMARK APPLICATION LOGIC ---
                     if (watermark) {
-                        // Dynamically scale watermark based on output width
-                        const wmWidth = targetWidth * 0.40; // 40% of the canvas width
+                        const wmWidth = targetWidth * 0.40; 
                         const wmHeight = watermark.height * (wmWidth / watermark.width);
                         
-                        ctx.globalAlpha = 0.50; // 50% transparency
+                        ctx.globalAlpha = 0.50; 
                         
-                        // Draw at Center-Right
                         ctx.drawImage(watermark, targetWidth - wmWidth - 20, (finalHeight / 2) - (wmHeight / 2), wmWidth, wmHeight);
-                        // Draw at Bottom-Right
                         ctx.drawImage(watermark, targetWidth - wmWidth - 20, finalHeight - wmHeight - 20, wmWidth, wmHeight);
                         
-                        ctx.globalAlpha = 1.0; // Reset transparency
+                        ctx.globalAlpha = 1.0; 
                     }
 
                     const blob = await new Promise(r => canvas.toBlob(r, "image/webp", qualityValue));
@@ -439,7 +475,7 @@
                     
                     processedBatches++;
                     p(Math.round((processedBatches / totalBatches) * 100));
-                    s(`Processing Episode ${ep.epNumber} - Slice ${out}...`);
+                    s(`Processing Chapter ${ep.epNumber} - Slice ${out}...`);
                     out++;
                 }
             }
